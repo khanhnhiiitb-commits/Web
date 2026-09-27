@@ -2,11 +2,14 @@
 
 > **Đồ án cuối kỳ môn Phát triển Ứng dụng Web**  
 > Giải pháp kết nối cộng đồng chia sẻ đồ cũ miễn phí, góp phần giảm thiểu rác thải tiêu dùng và lan tỏa lối sống xanh (Zero Waste).
-#Thành Viên
-> Tăng Khánh Nhi
-> Lê Thị Hồng Nhã
-> Ngô Thị Thu Duyên
-> Giáp Thị Thu Liễu
+---
+
+**Thành Viên**
+1. Tăng Khánh Nhi
+2. Lê Thị Hồng Nhã
+3. Ngô Thị Thu Duyên
+4. Giáp Thị Thu Liễu
+
 ---
 
 ## 📖 1. Mô tả tổng quan đồ án

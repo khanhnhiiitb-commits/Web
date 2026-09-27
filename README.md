@@ -25,11 +25,11 @@ Trong cuộc sống hiện đại, rất nhiều vật dụng (sách vở, quầ
 
 ---
 
-## ✨ 2. Các chức năng cơ bản của hệ thống
+## 2. Các chức năng cơ bản của hệ thống
 
 Hệ thống được phân chia thành **3 phân hệ chức năng** chính:
 
-### 🌍 Phân hệ Khách vãng lai (Public / Guest)
+### Phân hệ Khách vãng lai (Public / Guest)
 * **Trang chủ (Home):** Hiển thị banner giới thiệu, danh mục đồ nổi bật, các món đồ mới đăng và tin tức sống xanh (sử dụng *Bootstrap Carousel & Grid Card*).
 * **Tìm kiếm & Lọc đồ tức thì (Tích hợp AJAX + JSON):** 
   * Tìm kiếm theo từ khóa, lọc theo Danh mục hoặc Tỉnh/Thành phố.
@@ -37,7 +37,7 @@ Hệ thống được phân chia thành **3 phân hệ chức năng** chính:
 * **Xem chi tiết món đồ:** Xem hình ảnh, mô tả tình trạng thực tế (mới 90%, còn dùng tốt...), khu vực nhận đồ và thông tin người đăng.
 * **Góc Sống Xanh (Blog):** Xem danh sách và đọc các bài viết hướng dẫn tái chế, phân loại rác.
 
-### 👤 Phân hệ Thành viên (Member - Người cho & Người nhận)
+### Phân hệ Thành viên (Member - Người cho & Người nhận)
 * **Quản lý Tài khoản:** Đăng ký, Đăng nhập, Đăng xuất và cập nhật thông tin liên hệ cá nhân.
 * **Đăng tin chia sẻ đồ cũ (Tích hợp Webservice JSON):**
   * Cho phép thành viên tải lên hình ảnh, chọn danh mục, nhập mô tả tình trạng món đồ.
@@ -46,7 +46,7 @@ Hệ thống được phân chia thành **3 phân hệ chức năng** chính:
   * Gửi lời nhắn xin nhận đồ trực tiếp thông qua hộp thoại *Bootstrap Modal*. Dữ liệu được gửi và phản hồi qua **AJAX (JSON)**.
 * **Quản lý đồ cá nhân:** Xem danh sách đồ đã đăng, duyệt yêu cầu xin nhận từ người khác và đổi trạng thái món đồ (*"Đang còn"* ↔ *"Đã tặng"*).
 
-### 🛠️ Phân hệ Quản trị viên (Admin Panel - Cơ bản)
+### Phân hệ Quản trị viên (Admin Panel - Cơ bản)
 * **Dashboard thống kê:** Xem tổng số món đồ, số đồ đã tặng thành công, tổng số bài viết và thành viên.
 * **Quản lý Danh mục (Category CRUD):** Thêm mới, sửa, xóa các danh mục đồ tái sử dụng.
 * **Quản lý Đồ chia sẻ (Product/Item CRUD):** Thêm mới, cập nhật thông tin, duyệt hoặc xóa nhanh các món đồ vi phạm (hỗ trợ xóa/đổi trạng thái qua **AJAX**).
@@ -55,7 +55,7 @@ Hệ thống được phân chia thành **3 phân hệ chức năng** chính:
 
 ---
 
-## 🚀 3. Công nghệ sử dụng (Tech Stack)
+## 3. Công nghệ sử dụng (Tech Stack)
 
 | Thành phần | Công nghệ / Công cụ áp dụng |
 | :--- | :--- |

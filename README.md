@@ -32,38 +32,27 @@ Trong cuộc sống hiện đại, rất nhiều vật dụng (sách vở, quầ
 Hệ thống được phân chia thành **3 phân hệ chức năng** chính:
 
 ### Phân hệ Khách vãng lai (Public / Guest)
-* **Trang chủ (Home):** Hiển thị banner giới thiệu, danh mục đồ nổi bật, các món đồ mới đăng và tin tức sống xanh (sử dụng *Bootstrap Carousel & Grid Card*).
-* **Tìm kiếm & Lọc đồ tức thì (Tích hợp AJAX + JSON):** 
+* **Trang chủ (Home):** Hiển thị banner giới thiệu, danh mục đồ nổi bật, các món đồ mới đăng và tin tức sống xanh.
+* **Tìm kiếm & Lọc đồ tức thì:** 
   * Tìm kiếm theo từ khóa, lọc theo Danh mục hoặc Tỉnh/Thành phố.
-  * Sử dụng **AJAX** gửi yêu cầu ngầm và nhận dữ liệu **JSON** từ Server để cập nhật danh sách món đồ ngay lập tức mà không cần reload trang.
 * **Xem chi tiết món đồ:** Xem hình ảnh, mô tả tình trạng thực tế (mới 90%, còn dùng tốt...), khu vực nhận đồ và thông tin người đăng.
 * **Góc Sống Xanh (Blog):** Xem danh sách và đọc các bài viết hướng dẫn tái chế, phân loại rác.
 
 ### Phân hệ Thành viên (Member - Người cho & Người nhận)
 * **Quản lý Tài khoản:** Đăng ký, Đăng nhập, Đăng xuất và cập nhật thông tin liên hệ cá nhân.
-* **Đăng tin chia sẻ đồ cũ (Tích hợp Webservice JSON):**
+* **Đăng tin chia sẻ đồ cũ**
   * Cho phép thành viên tải lên hình ảnh, chọn danh mục, nhập mô tả tình trạng món đồ.
-  * **Sử dụng Webservice bên thứ 3:** Tự động gọi Public API Hành chính Việt Nam (dữ liệu **JSON**) để hiển thị danh sách *Tỉnh/Thành phố -> Quận/Huyện -> Phường/Xã* khi chọn địa chỉ giao nhận.
-* **Đăng ký "Xin nhận đồ" (Bootstrap Modal + AJAX):**
-  * Gửi lời nhắn xin nhận đồ trực tiếp thông qua hộp thoại *Bootstrap Modal*. Dữ liệu được gửi và phản hồi qua **AJAX (JSON)**.
+* **Đăng ký "Xin nhận đồ"**
+  * Gửi lời nhắn xin nhận đồ trực tiếp thông qua hộp thoại.**
 * **Quản lý đồ cá nhân:** Xem danh sách đồ đã đăng, duyệt yêu cầu xin nhận từ người khác và đổi trạng thái món đồ (*"Đang còn"* ↔ *"Đã tặng"*).
 
 ### Phân hệ Quản trị viên (Admin Panel - Cơ bản)
 * **Dashboard thống kê:** Xem tổng số món đồ, số đồ đã tặng thành công, tổng số bài viết và thành viên.
 * **Quản lý Danh mục (Category CRUD):** Thêm mới, sửa, xóa các danh mục đồ tái sử dụng.
-* **Quản lý Đồ chia sẻ (Product/Item CRUD):** Thêm mới, cập nhật thông tin, duyệt hoặc xóa nhanh các món đồ vi phạm (hỗ trợ xóa/đổi trạng thái qua **AJAX**).
+* **Quản lý Đồ chia sẻ (Product/Item CRUD):** Thêm mới, cập nhật thông tin, duyệt hoặc xóa nhanh các món đồ vi phạm.
 * **Quản lý Bài viết (Post CRUD):** Thêm, sửa, xóa các bài viết tin tức ở chuyên mục Góc Sống Xanh.
 * **Quản lý Người dùng:** Xem danh sách thành viên và phân quyền cơ bản (*Admin / Member*).
 
 ---
 
-## 3. Công nghệ sử dụng (Tech Stack)
 
-| Thành phần | Công nghệ / Công cụ áp dụng |
-| :--- | :--- |
-| **Frontend** | HTML5, CSS3, **Bootstrap 5.3**, JavaScript (Fetch API / jQuery AJAX) |
-| **Backend** | PHP 8.x xây dựng theo chuẩn **OOP (Hướng đối tượng) + MVC** |
-| **Cơ sở dữ liệu** | **MySQL** (Triển khai trên **Shared Cloud Host** để cả nhóm truy cập chung) |
-| **Tích hợp & Truyền tải** | **AJAX** nội bộ & **RESTful Webservice** Tỉnh/Thành phố (Định dạng **JSON**) |
-| **Quản lý mã nguồn** | **Git & GitHub** (Quản lý phân nhánh theo tính năng - Branching Workflow) |
-| **Quản lý tiến độ nhóm** | **Microsoft Teams** & **Planner** (Phân chia task, họp nhóm, lưu minh chứng) |

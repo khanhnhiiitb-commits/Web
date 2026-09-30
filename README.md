@@ -1,7 +1,7 @@
-# 🌱 Give & Take - Hệ Thống Web Chia Sẻ Đồ Tái Sử Dụng
+# Give & Take - Hệ Thống Web Chia Sẻ Đồ Tái Sử Dụng
+**Đồ án cuối kỳ môn Phát triển Ứng dụng Web**  
 
-> **Đồ án cuối kỳ môn Phát triển Ứng dụng Web**  
-> Giải pháp kết nối cộng đồng chia sẻ đồ cũ miễn phí, góp phần giảm thiểu rác thải tiêu dùng và lan tỏa lối sống xanh (Zero Waste).
+Giải pháp kết nối cộng đồng chia sẻ đồ cũ miễn phí, góp phần giảm thiểu rác thải tiêu dùng và lan tỏa lối sống xanh (Zero Waste).
 ---
 
 **Thành Viên**
@@ -14,7 +14,7 @@
 <img width="973" height="567" alt="image" src="https://github.com/user-attachments/assets/9aa05741-dfb1-48bc-ae00-cd4a2a1c9497" />
 
 
-## 📖 1. Mô tả tổng quan đồ án
+## 1. Mô tả tổng quan đồ án
 
 Trong cuộc sống hiện đại, rất nhiều vật dụng (sách vở, quần áo, đồ gia dụng, thiết bị điện tử...) vẫn còn giá trị sử dụng tốt nhưng bị bỏ phí khi chủ nhân không còn nhu cầu. Ngược lại, nhiều người khác (sinh viên, người lao động...) lại đang rất cần những món đồ đó.
 

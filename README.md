@@ -11,6 +11,8 @@
 4. Giáp Thị Thu Liễu
 
 ---
+<img width="973" height="567" alt="image" src="https://github.com/user-attachments/assets/9aa05741-dfb1-48bc-ae00-cd4a2a1c9497" />
+
 
 ## 📖 1. Mô tả tổng quan đồ án
 

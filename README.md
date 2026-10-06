@@ -55,5 +55,7 @@ Hệ thống được phân chia thành **3 phân hệ chức năng** chính:
 
 ---
 <img width="982" height="797" alt="image" src="https://github.com/user-attachments/assets/19793136-4449-4400-b1e9-82a6c5e446c7" />
+<img width="942" height="642" alt="image" src="https://github.com/user-attachments/assets/e1cf5bd9-b232-4059-a56d-7661940f9fb1" />
+
 
 

@@ -54,5 +54,6 @@ Hệ thống được phân chia thành **3 phân hệ chức năng** chính:
 * **Quản lý Người dùng:** Xem danh sách thành viên và phân quyền cơ bản (*Admin / Member*).
 
 ---
+<img width="982" height="797" alt="image" src="https://github.com/user-attachments/assets/19793136-4449-4400-b1e9-82a6c5e446c7" />
 
 

@@ -1,15 +1,9 @@
 <?php
-namespace App\Controllers;
-
-use App\Core\Controller;
-
+namespace App\Core;
 class HomeController extends Controller {
     public function index() {
-    $categoryModel = $this->model('CategoryModel');
-    $categories = $categoryModel->getAll(); 
-
-    echo '<pre>';
-    print_r($categories);
-    die(); 
-}
+        $title = "Xin chào, hệ thống MVC đã hoạt động!";
+        // Truyền biến title ra view home/index
+        $this->view("home/index", ['title' => $title]);
+    }
 }

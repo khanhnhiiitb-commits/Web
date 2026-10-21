@@ -1,4 +1,5 @@
 <?php
+use App\Core\Model;
 
 class UserModel extends Model
 {

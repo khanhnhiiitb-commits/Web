@@ -4,7 +4,7 @@ namespace App\Models;
 
 use App\Core\Database;
 use PDO;
-use Exception;
+use Throwable;
 
 class RequestModel
 {
@@ -15,27 +15,71 @@ class RequestModel
         $this->db = Database::getConnection();
     }
 
-    // Chấp nhận yêu cầu nhận đồ
-    public function acceptRequest($requestId)
+    // 1. Danh sách các món đồ mình đi xin
+    public function getMyRequests($userId)
+    {
+        $sql = "SELECT ir.id AS request_id,
+                       ir.message,
+                       ir.status AS request_status,
+                       ir.created_at,
+                       i.title AS item_title
+                FROM item_requests ir
+                JOIN items i ON ir.item_id = i.id
+                WHERE ir.requester_id = :user_id
+                ORDER BY ir.created_at DESC";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute(['user_id' => $userId]);
+
+        return $stmt->fetchAll();
+    }
+
+    // 2. Danh sách người xin những món đồ mình đăng
+    public function getRequestsForMyItems($userId)
+    {
+        $sql = "SELECT ir.id AS request_id,
+                       ir.item_id,
+                       ir.message,
+                       ir.status AS request_status,
+                       ir.created_at,
+                       i.title AS item_title,
+                       u.full_name AS requester_name
+                FROM item_requests ir
+                JOIN items i ON ir.item_id = i.id
+                JOIN users u ON ir.requester_id = u.id
+                WHERE i.user_id = :user_id
+                  AND ir.status = 'pending'
+                ORDER BY ir.created_at DESC";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute(['user_id' => $userId]);
+
+        return $stmt->fetchAll();
+    }
+
+    // 3. Chủ đồ đồng ý cho người xin
+    public function acceptRequest($requestId, $userId)
     {
         try {
-            // Bắt đầu transaction
             $this->db->beginTransaction();
 
-            // Lấy item_id của yêu cầu được chọn
-            $sql = "SELECT item_id
-                    FROM item_requests
-                    WHERE id = :request_id
+            // Chỉ cho phép chủ đồ duyệt yêu cầu
+            $sql = "SELECT ir.item_id
+                    FROM item_requests ir
+                    JOIN items i ON ir.item_id = i.id
+                    WHERE ir.id = :request_id
+                      AND i.user_id = :user_id
+                      AND ir.status = 'pending'
                     FOR UPDATE";
 
             $stmt = $this->db->prepare($sql);
             $stmt->execute([
-                ':request_id' => $requestId
+                'request_id' => $requestId,
+                'user_id' => $userId
             ]);
 
             $request = $stmt->fetch();
 
-            // Nếu không tìm thấy yêu cầu
             if (!$request) {
                 $this->db->rollBack();
                 return false;
@@ -43,52 +87,69 @@ class RequestModel
 
             $itemId = $request['item_id'];
 
-            // Bước 1: Chấp nhận yêu cầu được chọn
+            // Chấp nhận yêu cầu được chọn
             $sql = "UPDATE item_requests
                     SET status = 'accepted'
                     WHERE id = :request_id";
 
             $stmt = $this->db->prepare($sql);
-            $stmt->execute([
-                ':request_id' => $requestId
-            ]);
+            $stmt->execute(['request_id' => $requestId]);
 
-            // Từ chối các yêu cầu khác đang chờ của cùng món đồ
+            // Từ chối những yêu cầu đang chờ khác của cùng món đồ
             $sql = "UPDATE item_requests
                     SET status = 'rejected'
                     WHERE item_id = :item_id
-                    AND id != :request_id
-                    AND status = 'pending'";
+                      AND id != :request_id
+                      AND status = 'pending'";
 
             $stmt = $this->db->prepare($sql);
             $stmt->execute([
-                ':item_id' => $itemId,
-                ':request_id' => $requestId
+                'item_id' => $itemId,
+                'request_id' => $requestId
             ]);
 
-            // Bước 2: Cập nhật trạng thái món đồ thành gifted
+            // Đánh dấu món đồ đã được tặng
             $sql = "UPDATE items
                     SET status = 'gifted'
-                    WHERE id = :item_id";
+                    WHERE id = :item_id
+                      AND user_id = :user_id";
 
             $stmt = $this->db->prepare($sql);
             $stmt->execute([
-                ':item_id' => $itemId
+                'item_id' => $itemId,
+                'user_id' => $userId
             ]);
 
-            // Nếu tất cả thành công, xác nhận thay đổi
             $this->db->commit();
-
             return true;
 
-        } catch (\Throwable $e) {
-
-            // Nếu có lỗi, hoàn tác các thay đổi
+        } catch (Throwable $e) {
             if ($this->db->inTransaction()) {
                 $this->db->rollBack();
             }
 
+            error_log($e->getMessage());
             return false;
         }
+    }
+
+    // 4. Chủ đồ từ chối một yêu cầu
+    public function rejectRequest($requestId, $userId)
+    {
+        $sql = "UPDATE item_requests ir
+                JOIN items i ON ir.item_id = i.id
+                SET ir.status = 'rejected'
+                WHERE ir.id = :request_id
+                  AND i.user_id = :user_id
+                  AND ir.status = 'pending'";
+
+        $stmt = $this->db->prepare($sql);
+
+        $stmt->execute([
+            'request_id' => $requestId,
+            'user_id' => $userId
+        ]);
+
+        return $stmt->rowCount() > 0;
     }
 }

@@ -31,4 +31,36 @@ class ItemModel extends Model {
         $stmt->execute(['user_id' => $userId]);
         return $stmt->fetchAll();
     }
+    public function getAvailableItems() {
+        $sql = "SELECT items.*, categories.name as category_name 
+                FROM items 
+                JOIN categories ON items.category_id = categories.id 
+                WHERE items.status = 'available' 
+                ORDER BY items.created_at DESC";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
+
+    public function searchItems($keyword, $categoryId) {
+        $sql = "SELECT items.*, categories.name as category_name 
+                FROM items 
+                JOIN categories ON items.category_id = categories.id 
+                WHERE items.status = 'available'";
+        
+        $params = [];
+        if (!empty($keyword)) {
+            $sql .= " AND items.title LIKE :keyword";
+            $params['keyword'] = "%$keyword%";
+        }
+        if (!empty($categoryId)) {
+            $sql .= " AND items.category_id = :category_id";
+            $params['category_id'] = $categoryId;
+        }
+        $sql .= " ORDER BY items.created_at DESC";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll();
+    }
 }

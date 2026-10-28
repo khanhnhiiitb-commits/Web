@@ -23,7 +23,7 @@ $error = $error ?? '';
                             </div>
                         <?php } ?>
 
-                        <form action="index.php?controller=auth&amp;action=login"
+                        <form action="index.php?controller=auth&amp;action=postLogin"
                               method="POST">
 
                             <div class="mb-3">

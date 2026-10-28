@@ -1,37 +1,37 @@
 <?php
 namespace App\Controllers;
-
 use App\Core\Controller;
-use App\Models\ItemModel;
-use App\Models\CategoryModel;
 
-class HomeController extends Controller {
-    // Đổ dữ liệu ra trang chủ lúc tải trang
-    public function index() {
-        $itemModel = new ItemModel();
-        $categoryModel = new CategoryModel();
-        
-        // Lấy danh sách đồ đang available
-        $items = $itemModel->getAvailableItems();
-        $categories = $categoryModel->getAllCategories();
-        
+class HomeController extends Controller 
+{
+    private $itemModel;
+
+    public function __construct() 
+    {
+        $this->itemModel = $this->model('ItemModel'); 
+    }
+
+    public function index() 
+    {
+        // Lấy danh sách đồ available từ ItemModel truyền ra view
+        $data = $this->itemModel->getAvailableItems();
+        $categories = $this->itemModel->getCategories(); // Giả sử có hàm lấy danh mục
         $this->view('home/index', [
-            'items' => $items,
+            'items' => $data,
             'categories' => $categories
         ]);
     }
 
-    // Xử lý bộ lọc AJAX, trả về JSON
-    public function searchAjax() {
+    public function searchAjax() 
+    {
         $keyword = isset($_GET['keyword']) ? trim($_GET['keyword']) : '';
-        $categoryId = isset($_GET['category_id']) ? $_GET['category_id'] : '';
-        
-        $itemModel = new ItemModel();
-        $items = $itemModel->searchItems($keyword, $categoryId);
-        
-        // Trả về dữ liệu JSON
-        header('Content-Type: application/json');
-        echo json_encode($items);
+        $categoryId = isset($_GET['category_id']) ? trim($_GET['category_id']) : '';
+
+        // Truy vấn Model
+        $data = $this->itemModel->searchItems($keyword, $categoryId);
+
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode($data);
         exit;
     }
 }

@@ -1,37 +1,49 @@
+<?php
+require_once '../../Config/config.php';
+$sql = "SELECT i.*, c.name as category_name 
+        FROM items i 
+        JOIN categories c ON i.category_id = c.id 
+        WHERE i.status = 'available' 
+        ORDER BY i.created_at DESC LIMIT 12";
+$items = $pdo->query($sql)->fetchAll();
+?>
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Trang chủ - Sống Xanh</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<!-- Navbar giả định -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-success mb-4">
+    <div class="container">
+        <a class="navbar-brand" href="index.php">🌿 Sống Xanh Sharing</a>
+        <a href="post-product.php" class="btn btn-light text-success fw-bold">Đăng đồ tặng</a>
+    </div>
+</nav>
 
-<?php /** @var array $data */ ?>
-<div class="container mt-4">
-    <h2 class="mb-4 text-success border-bottom pb-2">Góc Sống Xanh</h2>
-<!-- Các dòng dưới giữ nguyên --><div class="container mt-4">
-    <!-- Bộ lọc tìm kiếm -->
-    <div class="row mb-4">
-        <div class="col-md-6">
-            <input type="text" id="searchInput" class="form-control" placeholder="Tìm kiếm tên món đồ...">
-        </div>
-        <div class="col-md-4">
-            <select id="categorySelect" class="form-select">
-                <option value="">Tất cả danh mục</option>
-                <?php foreach($data['categories'] as $cat): ?>
-                    <option value="<?= $cat['id'] ?>"><?= $cat['name'] ?></option>
-                <?php endforeach; ?>
-            </select>
-        </div>
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-success pb-2">
+        <h2 class="text-success fw-bold">Đồ mới chia sẻ</h2>
+        <a href="search.php" class="btn btn-outline-success">Tìm kiếm & Lọc</a>
     </div>
     
-    <!-- Lưới hiển thị sản phẩm -->
-    <div class="row" id="itemList">
-        <?php foreach($data['items'] as $item): ?>
+    <div class="row">
+        <?php foreach($items as$item): ?>
         <div class="col-md-3 mb-4">
-            <div class="card h-100">
-                <img src="<?= $item['image_url'] ?>" class="card-img-top" alt="<?= htmlspecialchars($item['title']) ?>">
+            <div class="card h-100 border-success shadow-sm">
+                <img src="uploads/<?= htmlspecialchars($item['image_url']) ?>" class="card-img-top" style="height: 200px; object-fit: cover;" alt="Hình ảnh">
                 <div class="card-body d-flex flex-column">
-                    <h5 class="card-title"><?= htmlspecialchars($item['title']) ?></h5>
-                    <p class="card-text text-success"><small><?= $item['category_name'] ?></small></p>
-                    <p class="card-text"><?= substr(htmlspecialchars($item['description']), 0, 60) ?>...</p>
-                    <a href="/item/detail/<?= $item['id'] ?>" class="btn btn-outline-success mt-auto">Xem chi tiết</a>
+                    <h5 class="card-title text-success"><?= htmlspecialchars($item['title']) ?></h5>
+                    <span class="badge bg-success mb-2 w-50"><?= htmlspecialchars($item['category_name']) ?></span>
+                    <p class="card-text small text-muted">📍 <?= htmlspecialchars($item['pickup_location']) ?></p>
+                    <a href="product-detail.php?id=<?= $item['id'] ?>" class="btn btn-success mt-auto">Xem chi tiết</a>
                 </div>
             </div>
         </div>
         <?php endforeach; ?>
     </div>
 </div>
+</body>
+</html>

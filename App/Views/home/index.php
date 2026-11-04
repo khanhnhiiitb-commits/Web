@@ -40,9 +40,13 @@ $items = $pdo->query($sql)->fetchAll();
                     <p class="card-text small text-muted">📍 <?= htmlspecialchars($item['pickup_location']) ?></p>
                     <a href="product-detail.php?id=<?= $item['id'] ?>" class="btn btn-success mt-auto">Xem chi tiết</a>
                 </div>
-            </div>
+                <?php endforeach; 
+            else: ?>
+                <div class="col-12 text-center py-5">
+                    <p class="text-muted fs-5">Chưa có món đồ nào được đăng hoặc cơ sở dữ liệu đang trống.</p>
+                </div>
+            <?php endif; ?>
         </div>
-        <?php endforeach; ?>
     </div>
 </div>
 </body>

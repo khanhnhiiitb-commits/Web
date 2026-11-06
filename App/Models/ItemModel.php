@@ -72,4 +72,24 @@ class ItemModel extends Model {
         $stmt->execute($params);
         return $stmt->fetchAll();
     }
+    
+// Lấy chi tiết sản phẩm đang còn khả dụng
+public function getItemById($id)
+{
+    $sql = "SELECT
+                items.*,
+                categories.name AS category_name
+            FROM items
+            JOIN categories
+                ON items.category_id = categories.id
+            WHERE items.id = :id
+            AND items.status = 'available'
+            LIMIT 1";
+
+    $stmt = $this->db->prepare($sql);
+    $stmt->execute(['id' => $id]);
+
+    return $stmt->fetch();
+}
+
 }

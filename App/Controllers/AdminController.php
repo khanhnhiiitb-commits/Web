@@ -75,4 +75,62 @@ class AdminController extends Controller
         // Hiển thị giao diện dashboard
         require __DIR__ . '/../../views/admin/dashboard.php';
     }
+    
+    // Hiển thị danh sách người dùng
+    public function users()
+    {
+        if (
+            !isset($_SESSION['user_id']) ||
+            !isset($_SESSION['role']) ||
+            $_SESSION['role'] !== 'admin'
+        ) {
+            header('Location: index.php');
+            exit;
+        }
+
+        $userModel = new \App\Models\UserModel();
+        $users = $userModel->getAllUsers();
+
+        require __DIR__ . '/../../views/admin/manage_users.php';
+    }
+
+    // Khóa hoặc mở khóa tài khoản
+    public function updateUserStatus()
+    {
+        if (
+            !isset($_SESSION['user_id']) ||
+            !isset($_SESSION['role']) ||
+            $_SESSION['role'] !== 'admin'
+        ) {
+            header('Location: index.php');
+            exit;
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: index.php?controller=admin&action=users');
+            exit;
+        }
+
+        $id = (int) ($_POST['id'] ?? 0);
+        $status = (int) ($_POST['status'] ?? -1);
+
+        // Chỉ chấp nhận trạng thái 0 hoặc 1
+        if ($id <= 0 || !in_array($status, [0, 1], true)) {
+            header('Location: index.php?controller=admin&action=users');
+            exit;
+        }
+
+        // Không cho admin tự khóa tài khoản của mình
+        if ($id === (int) $_SESSION['user_id']) {
+            header('Location: index.php?controller=admin&action=users');
+            exit;
+        }
+
+        $userModel = new \App\Models\UserModel();
+        $userModel->updateStatus($id, $status);
+
+        header('Location: index.php?controller=admin&action=users');
+        exit;
+    }
+
 }

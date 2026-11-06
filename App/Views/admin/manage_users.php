@@ -1,4 +1,6 @@
-
+<?php
+$users = $users ?? [];
+?>
 <!DOCTYPE html>
 <html lang="vi">
 <head>

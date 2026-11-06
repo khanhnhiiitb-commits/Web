@@ -1,6 +1,6 @@
 <?php
-namespace App\Core; // Đổi lại thành Core vì Database là nền tảng hệ thống
-
+namespace App\Core; 
+require_once __DIR__ . '/../Config/config.php';
 use PDO;
 use PDOException;
 

@@ -1,37 +1,63 @@
 <?php
 namespace App\Controllers;
+
 use App\Core\Controller;
 
-class HomeController extends Controller 
+class HomeController extends Controller
 {
     private $itemModel;
 
-    public function __construct() 
+    public function __construct()
     {
-        $this->itemModel = $this->model('ItemModel'); 
+        $this->itemModel = $this->model('ItemModel');
     }
 
-    public function index() 
+    // Trang chủ
+    public function index()
     {
-        // Lấy danh sách đồ available từ ItemModel truyền ra view
-        $data = $this->itemModel->getAvailableItems();
-        $categories = $this->itemModel->getCategories(); // Giả sử có hàm lấy danh mục
+        $keyword = trim($_GET['keyword'] ?? '');
+        $categoryId = $_GET['category_id'] ?? '';
+
+        // Lấy sản phẩm
+        if ($keyword !== '' || $categoryId !== '') {
+            $items = $this->itemModel->searchItems(
+                $keyword,
+                $categoryId
+            );
+        } else {
+            $items = $this->itemModel->getAvailableItems();
+        }
+
+        // Lấy danh mục
+        $categories = $this->itemModel->getCategories();
+
+        // Truyền dữ liệu sang View
         $this->view('home/index', [
-            'items' => $data,
-            'categories' => $categories
+            'items' => $items,
+            'categories' => $categories,
+            'keyword' => $keyword,
+            'categoryId' => $categoryId
         ]);
     }
 
-    public function searchAjax() 
+    // Tìm kiếm AJAX
+    public function searchAjax()
     {
-        $keyword = isset($_GET['keyword']) ? trim($_GET['keyword']) : '';
-        $categoryId = isset($_GET['category_id']) ? trim($_GET['category_id']) : '';
+        $keyword = trim($_GET['keyword'] ?? '');
+        $categoryId = $_GET['category_id'] ?? '';
 
-        // Truy vấn Model
-        $data = $this->itemModel->searchItems($keyword, $categoryId);
+        $data = $this->itemModel->searchItems(
+            $keyword,
+            $categoryId
+        );
 
         header('Content-Type: application/json; charset=utf-8');
-        echo json_encode($data);
+
+        echo json_encode(
+            $data,
+            JSON_UNESCAPED_UNICODE
+        );
+
         exit;
     }
 }

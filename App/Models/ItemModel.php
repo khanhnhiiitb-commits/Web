@@ -41,7 +41,16 @@ class ItemModel extends Model {
         $stmt->execute();
         return $stmt->fetchAll();
     }
+    // Lấy tất cả danh mục
+    public function getCategories()
+    {
+     $sql = "SELECT * FROM categories ORDER BY name ASC";
 
+     $stmt = $this->db->prepare($sql);
+     $stmt->execute();
+
+    return $stmt->fetchAll();
+    }
     public function searchItems($keyword, $categoryId) {
         $sql = "SELECT items.*, categories.name as category_name 
                 FROM items 

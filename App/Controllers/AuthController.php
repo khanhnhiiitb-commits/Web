@@ -9,23 +9,29 @@ class AuthController extends Controller
 {
     // Hiển thị form đăng nhập
     public function login()
-    {
-        $error = '';
-        $success = $_SESSION['success'] ?? '';
+{
+    $error = '';
+    $success = $_SESSION['success'] ?? '';
 
-        unset($_SESSION['success']);
+    unset($_SESSION['success']);
 
-        require __DIR__ . '/../../views/auth/login.php';
-    }
+    $this->view('auth/login', [
+        'error' => $error,
+        'success' => $success
+    ]);
+}
 
     // Hiển thị form đăng ký
     public function register()
-    {
-        $error = '';
-        $success = '';
+{
+    $error = '';
+    $success = '';
 
-        require __DIR__ . '/../../views/auth/register.php';
-    }
+    $this->view('auth/register', [
+        'error' => $error,
+        'success' => $success
+    ]);
+}
 
     // Xử lý dữ liệu đăng nhập từ form
     public function postLogin()
@@ -36,14 +42,20 @@ class AuthController extends Controller
         // Kiểm tra dữ liệu đầu vào
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $error = 'Email không đúng định dạng.';
-            require __DIR__ . '/../../views/auth/login.php';
-            return;
+          $this->view('auth/login', [
+             'error' => $error,
+              'success' => ''
+              ]);
+            return;           
         }
 
         if ($password === '') {
             $error = 'Vui lòng nhập mật khẩu.';
-            require __DIR__ . '/../../views/auth/login.php';
-            return;
+$this->view('auth/login', [
+    'error' => $error,
+    'success' => ''
+]);
+return;            return;
         }
 
         $userModel = new UserModel();
@@ -52,15 +64,21 @@ class AuthController extends Controller
         // Kiểm tra tài khoản và mật khẩu
         if (!$user || !password_verify($password, $user['password_hash'])) {
             $error = 'Email hoặc mật khẩu không chính xác.';
-            require __DIR__ . '/../../views/auth/login.php';
-            return;
+$this->view('auth/login', [
+    'error' => $error,
+    'success' => ''
+]);
+return;         
         }
 
         // Không cho đăng nhập tài khoản đã bị khóa
         if (isset($user['status']) && (int) $user['status'] !== 1) {
             $error = 'Tài khoản của bạn hiện đã bị khóa.';
-            require __DIR__ . '/../../views/auth/login.php';
-            return;
+$this->view('auth/login', [
+    'error' => $error,
+    'success' => ''
+]);
+return;           
         }
 
         // Đăng nhập thành công: lưu thông tin vào Session
@@ -87,29 +105,41 @@ class AuthController extends Controller
         // Kiểm tra họ tên
         if ($fullName === '') {
             $error = 'Vui lòng nhập họ tên.';
-            require __DIR__ . '/../../views/auth/register.php';
-            return;
+$this->view('auth/register', [
+    'error' => $error,
+    'success' => $success
+]);
+return;          
         }
 
         // Kiểm tra định dạng email
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $error = 'Email không đúng định dạng.';
-            require __DIR__ . '/../../views/auth/register.php';
-            return;
+$this->view('auth/register', [
+    'error' => $error,
+    'success' => $success
+]);
+return;           
         }
 
         // Kiểm tra độ dài mật khẩu
         if (strlen($password) < 8) {
             $error = 'Mật khẩu phải có ít nhất 8 ký tự.';
-            require __DIR__ . '/../../views/auth/register.php';
-            return;
+$this->view('auth/register', [
+    'error' => $error,
+    'success' => $success
+]);
+return;            
         }
 
         // Kiểm tra mật khẩu xác nhận
         if ($password !== $confirmPassword) {
             $error = 'Mật khẩu xác nhận không khớp.';
-            require __DIR__ . '/../../views/auth/register.php';
-            return;
+$this->view('auth/register', [
+    'error' => $error,
+    'success' => $success
+]);
+return;            
         }
 
         $userModel = new UserModel();
@@ -117,8 +147,11 @@ class AuthController extends Controller
         // Kiểm tra email đã được sử dụng chưa
         if ($userModel->findByEmail($email)) {
             $error = 'Email này đã được đăng ký.';
-            require __DIR__ . '/../../views/auth/register.php';
-            return;
+$this->view('auth/register', [
+    'error' => $error,
+    'success' => $success
+]);
+return;          
         }
 
         // Tạo tài khoản mới
@@ -143,15 +176,18 @@ class AuthController extends Controller
             $success = '';
         }
 
-        require __DIR__ . '/../../views/auth/register.php';
-    }
+$this->view('auth/register', [
+    'error' => $error,
+    'success' => $success
+]);
+return;    }
 
-    // Đăng xuất
-    public function logout()
-    {
-        session_unset();
-        session_destroy();
+   public function logout()
+{
+    session_unset();
+    session_destroy();
 
-        $this->redirect('home');
-    }
+    header('Location: index.php?controller=Home&action=index');
+    exit;
+}
 }

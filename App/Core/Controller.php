@@ -1,38 +1,56 @@
 <?php
 namespace App\Core;
-class Controller {
-    // Hàm gọi Model từ thư mục App/Models
-public function model($model)
+
+class Controller
 {
-    $file = __DIR__ . '/../Models/' . $model . '.php';
+    // Gọi Model
+    public function model($model)
+    {
+        $file = __DIR__ . '/../Models/' . $model . '.php';
 
-    if (file_exists($file)) {
+        if (!file_exists($file)) {
+            die("Không tìm thấy Model: " . $file);
+        }
+
         require_once $file;
-    } else {
-        die("Không tìm thấy Model: " . $file);
+
+        $class = 'App\\Models\\' . $model;
+
+        return new $class();
     }
 
-    $class = 'App\\Models\\' . $model;
+    // Gọi View
+    public function view($view, $data = [])
+    {
+        extract($data);
 
-    return new $class();
-}
+        $viewPath = __DIR__ . '/../Views/' . $view . '.php';
 
-    // Hàm gọi View và truyền dữ liệu
-    public function view($view, $data = []) {
-    extract($data);
-
-    $viewPath = __DIR__ . '/../Views/' . $view . '.php';
-
-    if (file_exists($viewPath)) {
-        require $viewPath;
-    } else {
-        die("Lỗi: Không tìm thấy View: " . $viewPath);
+        if (file_exists($viewPath)) {
+            require $viewPath;
+        } else {
+            die("Không tìm thấy View: " . $viewPath);
+        }
     }
-}
 
-    // Hàm tiện ích: Chuyển hướng trang
-    public function redirect($url) {
-        header("Location: " . BASE_URL . $url);
+    // Kiểm tra đăng nhập
+    protected function requireLogin()
+    {
+        if (empty($_SESSION['user_id'])) {
+
+            // Lưu địa chỉ người dùng muốn truy cập
+            $_SESSION['redirect_after_login'] =
+                $_SERVER['QUERY_STRING'] ?? '';
+
+            header('Location: index.php?controller=Auth&action=login');
+            exit;
+        }
+    }
+
+    // Chuyển hướng
+    public function redirect($url)
+    {
+        header("Location: " . $url);
         exit();
     }
 }

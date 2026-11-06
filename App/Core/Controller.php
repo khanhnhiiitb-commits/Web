@@ -1,11 +1,21 @@
 <?php
 namespace App\Core;
 class Controller {
-    // Hàm gọi Model từ thư mục models
-    public function model($model) {
-        require_once "./models/" . $model . ".php";
-        return new $model();
+    // Hàm gọi Model từ thư mục App/Models
+public function model($model)
+{
+    $file = __DIR__ . '/../Models/' . $model . '.php';
+
+    if (file_exists($file)) {
+        require_once $file;
+    } else {
+        die("Không tìm thấy Model: " . $file);
     }
+
+    $class = 'App\\Models\\' . $model;
+
+    return new $class();
+}
 
     // Hàm gọi View và truyền dữ liệu
     public function view($view, $data = []) {

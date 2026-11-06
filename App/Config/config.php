@@ -1,7 +1,7 @@
 <?php
 
 // Cấu hình thông số Database
-define('DB_HOST', '26.225.165/225');
+define('DB_HOST', '26.225.165.255');
 define('DB_PORT', '3306');
 define('DB_NAME', 'reuse_sharing_db'); 
 define('DB_USER', 'root');

@@ -68,6 +68,7 @@ class AuthController extends Controller
 
         $_SESSION['user_id'] = $user['id'];
         $_SESSION['role'] = $user['role'];
+        $_SESSION['username'] = $user['full_name'];
 
         // Chuyển về trang chủ
         $this->redirect('home');

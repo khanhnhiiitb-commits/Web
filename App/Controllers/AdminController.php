@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Core\Controller;
 use App\Core\Database;
+use App\Models\UserModel;
 use PDO;
 
 class AdminController extends Controller
@@ -78,21 +79,22 @@ class AdminController extends Controller
     
     // Hiển thị danh sách người dùng
     public function users()
-    {
-        if (
-            !isset($_SESSION['user_id']) ||
-            !isset($_SESSION['role']) ||
-            $_SESSION['role'] !== 'admin'
-        ) {
-            header('Location: index.php');
-            exit;
-        }
-
-        $userModel = new \App\Models\UserModel();
-        $users = $userModel->getAllUsers();
-
-        require __DIR__ . '/../../views/admin/manage_users.php';
+{
+    // Kiểm tra quyền Admin
+    if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
+        $this->redirect('home');
+        return;
     }
+
+    // Lấy danh sách người dùng
+    $userModel = new UserModel();
+    $users = $userModel->getAllUsers();
+
+    // Truyền dữ liệu sang View
+    $this->view('admin/manage_users', [
+        'users' => $users
+    ]);
+}
 
     // Khóa hoặc mở khóa tài khoản
     public function updateUserStatus()

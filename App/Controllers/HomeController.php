@@ -29,8 +29,8 @@ class HomeController extends Controller
         }
 
         // Lấy danh mục
-        $categories = $this->itemModel->getCategories();
-
+$categoryModel = $this->model('CategoryModel');
+$categories = $categoryModel->getAllCategories();
         // Truyền dữ liệu sang View
         $this->view('home/index', [
             'items' => $items,

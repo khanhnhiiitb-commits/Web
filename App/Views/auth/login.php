@@ -30,7 +30,7 @@
                     <?php endif; ?>
 
                     <form method="POST"
-                          action="index.php?controller=auth&action=login">
+                        action="index.php?controller=Auth&action=postLogin">
 
                         <div class="mb-3">
                             <label class="form-label">Email</label>

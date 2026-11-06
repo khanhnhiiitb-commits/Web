@@ -88,8 +88,19 @@ return;
         $_SESSION['role'] = $user['role'];
         $_SESSION['username'] = $user['full_name'];
 
-        // Chuyển về trang chủ
-        $this->redirect('home');
+       // Lấy trang người dùng muốn truy cập trước khi đăng nhập
+$redirect = $_SESSION['redirect_after_login'] ?? '';
+
+unset($_SESSION['redirect_after_login']);
+
+// Nếu có trang cần quay lại thì chuyển về trang đó
+if ($redirect !== '') {
+    header('Location: index.php?' . $redirect);
+} else {
+    header('Location: index.php?controller=Home&action=index');
+}
+
+exit;
     }
 
     // Xử lý dữ liệu đăng ký từ form
@@ -176,10 +187,10 @@ return;
             $success = '';
         }
 
-$this->view('auth/register', [
-    'error' => $error,
-    'success' => $success
-]);
+        $this->view('auth/register', [
+         'error' => $error,
+         'success' => $success
+            ]);
 return;    }
 
    public function logout()

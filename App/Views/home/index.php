@@ -399,7 +399,7 @@ $username = $_SESSION['username'] ?? 'Tài khoản';
 
         <?php if ($isLoggedIn): ?>
 
-            <a href="index.php?controller=Item&action=postItem"
+            <a href="index.php?controller=Item&action=create"
                class="btn btn-green">
 
                 <i class="bi bi-plus-lg"></i>
@@ -475,7 +475,7 @@ $username = $_SESSION['username'] ?? 'Tài khoản';
 
                             </p>
 
-                            <a href="index.php?controller=Item&action=detail&id=<?= e($item['id']) ?>"
+                            <a href="index.php?controller=Item&action=detail&id=<?= (int)$item['id'] ?>"
                                class="btn btn-outline-success mt-auto">
 
                                 Xem chi tiết

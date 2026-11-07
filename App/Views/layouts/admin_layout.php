@@ -1,48 +1,54 @@
 <!DOCTYPE html>
 <html lang="vi">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sống Xanh Sharing - Admin Dashboard</title>
-    <!-- Nhúng thư viện Bootstrap hoặc CSS tĩnh của bạn ở đây -->
-    <link rel="stylesheet" href="<?= BASE_URL ?>public/css/admin_style.css">
+    <!-- Nhúng Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Nhúng Icon Bootstrap -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        body { background-color: #f1f4f6; }
+        .sidebar { width: 260px; background-color: #fff; min-height: 100vh; }
+        .nav-link { color: #495057; font-weight: 500; margin-bottom: 5px; border-radius: 5px; }
+        .nav-link:hover, .nav-link.active { background-color: #e9ecef; color: #198754; }
+    </style>
 </head>
 <body>
-    <div class="admin-container" style="display: flex;">
+    <div class="d-flex">
         <!-- SIDEBAR -->
-        <aside class="sidebar" style="width: 250px; background: #f8f9fa; min-height: 100vh; padding: 20px;">
-            <div class="logo" style="margin-bottom: 30px; font-weight: bold; color: #198754;">
+        <aside class="sidebar shadow-sm p-3">
+            <div class="fs-4 fw-bold text-success mb-4 text-center">
                 🌱 Sống Xanh Admin
             </div>
-            <ul style="list-style: none; padding: 0;">
-                <li style="margin-bottom: 15px;"><a href="<?= BASE_URL ?>admin/index" style="text-decoration: none; color: #333;">📊 Tổng quan</a></li>
-                <li style="margin-bottom: 15px;"><a href="<?= BASE_URL ?>admin/manageItems" style="text-decoration: none; color: #333;">📦 Quản lý bài đăng</a></li>
-                <li style="margin-bottom: 15px;"><a href="<?= BASE_URL ?>admin/manageUsers" style="text-decoration: none; color: #333;">👥 Quản lý tài khoản</a></li>
-                <li style="margin-bottom: 15px;"><a href="<?= BASE_URL ?>admin/manageTransactions" style="text-decoration: none; color: #333;">🤝 Giao dịch & Trao đổi</a></li>
-            </ul>
+            <nav class="nav flex-column">
+                <a class="nav-link px-3 py-2" href="<?= BASE_URL ?>admin/dashboard"><i class="bi bi-graph-up pe-2"></i>Tổng quan</a>
+                <a class="nav-link px-3 py-2" href="<?= BASE_URL ?>admin/items"><i class="bi bi-box-seam pe-2"></i>Quản lý bài đăng</a>
+                <a class="nav-link px-3 py-2" href="<?= BASE_URL ?>admin/users"><i class="bi bi-people pe-2"></i>Quản lý tài khoản</a>
+                <a class="nav-link px-3 py-2" href="<?= BASE_URL ?>admin/transactions"><i class="bi bi-arrow-left-right pe-2"></i>Lịch sử giao dịch</a>
+            </nav>
         </aside>
 
         <!-- NỘI DUNG CHÍNH -->
-        <main class="main-content" style="flex: 1; padding: 20px; background: #f1f4f6;">
+        <main class="flex-grow-1 p-4">
             <!-- TOPBAR -->
-            <header class="topbar" style="display: flex; justify-content: space-between; margin-bottom: 30px; background: #fff; padding: 15px; border-radius: 8px;">
-                <div class="search-bar">
-                    <input type="text" placeholder="Tìm kiếm đồ dùng, bài đăng..." style="padding: 5px 15px; width: 300px; border-radius: 20px; border: 1px solid #ccc;">
+            <header class="d-flex justify-content-between align-items-center bg-white p-3 rounded shadow-sm mb-4">
+                <div class="input-group w-25">
+                    <span class="input-group-text bg-transparent rounded-start-pill border-end-0"><i class="bi bi-search"></i></span>
+                    <input type="text" class="form-control rounded-end-pill border-start-0 ps-0" placeholder="Tìm kiếm...">
                 </div>
-                <div class="user-info">
-                    <span>Xin chào, Admin</span>
+                <div class="fw-bold text-secondary">
+                    Xin chào, Admin <i class="bi bi-person-circle fs-5 ms-2 text-success"></i>
                 </div>
             </header>
 
-            <!-- CHÈN VIEW ĐỘNG TỪ CONTROLLER -->
-<?php 
-if (isset($view)) {
-    require_once '../App/Views/' . $view . '.php'; 
-} else {
-    echo "<p style='color:red'>Lỗi: Không tìm thấy giao diện (View) để hiển thị.</p>";
-}
-?>        </main>
+            <!-- CHÈN VIEW ĐỘNG TỪ CONTROLLER: Đã dùng đúng cơ chế ob_get_clean của nhóm bạn -->
+            <?php echo $content ?? ''; ?>
+
+        </main>
     </div>
+    <!-- Script Bootstrap -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

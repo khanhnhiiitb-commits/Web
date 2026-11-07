@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Controllers;
 
 use App\Core\Controller;
@@ -9,130 +8,127 @@ use PDO;
 
 class AdminController extends Controller
 {
-    // Hiển thị trang quản trị
-    public function dashboard()
+    // Kiểm tra quyền Admin
+    private function checkAdmin()
     {
-        // Kiểm tra người dùng đã đăng nhập và có quyền Admin
-        if (
-            !isset($_SESSION['user_id']) ||
-            !isset($_SESSION['role']) ||
-            $_SESSION['role'] !== 'admin'
-        ) {
-            header('Location: index.php?controller=auth&action=login');
+        if (empty($_SESSION['user_id'])) {
+            header('Location: index.php?controller=Auth&action=login');
             exit;
         }
 
-        // Kết nối database
+        if (($_SESSION['role'] ?? '') !== 'admin') {
+            header('Location: index.php?controller=Home&action=index');
+            exit;
+        }
+
+        // Kiểm tra tài khoản có còn hoạt động không
+        $userModel = new UserModel();
+        $user = $userModel->findById($_SESSION['user_id']);
+
+        if (!$user || (int) $user['status'] !== 1) {
+            $_SESSION = [];
+            session_destroy();
+
+            header('Location: index.php?controller=Auth&action=login');
+            exit;
+        }
+    }
+
+    // Trang quản trị
+    public function dashboard()
+    {
+        $this->checkAdmin();
+
         $db = Database::getConnection();
 
-        // Đếm tổng số người dùng
-        $stmt = $db->query("SELECT COUNT(*) FROM users");
-        $totalUsers = (int) $stmt->fetchColumn();
+        $totalUsers = (int) $db
+            ->query("SELECT COUNT(*) FROM users")
+            ->fetchColumn();
 
-        // Đếm tổng số bài đăng
-        $stmt = $db->query("SELECT COUNT(*) FROM posts");
-        $totalPosts = (int) $stmt->fetchColumn();
+        $totalPosts = (int) $db
+            ->query("SELECT COUNT(*) FROM posts")
+            ->fetchColumn();
 
-        // Đếm tổng số yêu cầu
-        $stmt = $db->query("SELECT COUNT(*) FROM item_requests");
-        $totalRequests = (int) $stmt->fetchColumn();
+        $totalRequests = (int) $db
+            ->query("SELECT COUNT(*) FROM item_requests")
+            ->fetchColumn();
 
-        // Đếm số yêu cầu đang chờ xử lý
         $stmt = $db->prepare(
             "SELECT COUNT(*) FROM item_requests
              WHERE status = :status"
         );
-
-        $stmt->execute([
-            'status' => 'pending'
-        ]);
+        $stmt->execute([':status' => 'pending']);
 
         $pendingRequests = (int) $stmt->fetchColumn();
 
-        // Lấy 5 người dùng gần đây
         $stmt = $db->query(
             "SELECT id, full_name, email, role, status
-             FROM users
-             ORDER BY id DESC
-             LIMIT 5"
+             FROM users ORDER BY id DESC LIMIT 5"
         );
-
         $recentUsers = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // Lấy 5 yêu cầu gần đây
         $stmt = $db->query(
             "SELECT item_requests.id,
-            item_requests.status,
-            users.full_name
-            FROM item_requests
-            LEFT JOIN users
-            ON item_requests.requester_id = users.id
-            ORDER BY item_requests.id DESC
-            LIMIT 5"
-       );
-
+                    item_requests.status,
+                    users.full_name
+             FROM item_requests
+             LEFT JOIN users
+             ON item_requests.requester_id = users.id
+             ORDER BY item_requests.id DESC
+             LIMIT 5"
+        );
         $recentRequests = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // Hiển thị giao diện dashboard
-        require __DIR__ . '/../../views/admin/dashboard.php';
+        $this->view('admin/dashboard', [
+            'totalUsers' => $totalUsers,
+            'totalPosts' => $totalPosts,
+            'totalRequests' => $totalRequests,
+            'pendingRequests' => $pendingRequests,
+            'recentUsers' => $recentUsers,
+            'recentRequests' => $recentRequests
+        ]);
     }
-    
-    // Hiển thị danh sách người dùng
+
+    // Danh sách người dùng
     public function users()
-{
-    // Kiểm tra quyền Admin
-    if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
-        $this->redirect('home');
-        return;
+    {
+        $this->checkAdmin();
+
+        $userModel = new UserModel();
+        $users = $userModel->getAllUsers();
+
+        $this->view('admin/manage_users', [
+            'users' => $users
+        ]);
     }
-
-    // Lấy danh sách người dùng
-    $userModel = new UserModel();
-    $users = $userModel->getAllUsers();
-
-    // Truyền dữ liệu sang View
-    $this->view('admin/manage_users', [
-        'users' => $users
-    ]);
-}
 
     // Khóa hoặc mở khóa tài khoản
     public function updateUserStatus()
     {
-        if (
-            !isset($_SESSION['user_id']) ||
-            !isset($_SESSION['role']) ||
-            $_SESSION['role'] !== 'admin'
-        ) {
-            header('Location: index.php');
-            exit;
-        }
+        $this->checkAdmin();
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            header('Location: index.php?controller=admin&action=users');
-            exit;
+            $this->redirect('index.php?controller=Admin&action=users');
         }
 
         $id = (int) ($_POST['id'] ?? 0);
-        $status = (int) ($_POST['status'] ?? -1);
+        $status = filter_var(
+            $_POST['status'] ?? null,
+            FILTER_VALIDATE_INT
+        );
 
-        // Chỉ chấp nhận trạng thái 0 hoặc 1
         if ($id <= 0 || !in_array($status, [0, 1], true)) {
-            header('Location: index.php?controller=admin&action=users');
-            exit;
+            $this->redirect('index.php?controller=Admin&action=users');
         }
 
-        // Không cho admin tự khóa tài khoản của mình
+        // Không cho Admin tự khóa chính mình
         if ($id === (int) $_SESSION['user_id']) {
-            header('Location: index.php?controller=admin&action=users');
-            exit;
+            $this->redirect('index.php?controller=Admin&action=users');
         }
 
-        $userModel = new \App\Models\UserModel();
+        $userModel = new UserModel();
         $userModel->updateStatus($id, $status);
 
-        header('Location: index.php?controller=admin&action=users');
-        exit;
+        $this->redirect('index.php?controller=Admin&action=users');
     }
-
 }

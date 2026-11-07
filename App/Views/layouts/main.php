@@ -27,66 +27,109 @@
 <body>
 
 <!-- Navbar -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-success shadow-sm mb-4">
+<nav class="navbar navbar-expand-lg navbar-dark shadow-sm">
     <div class="container">
 
         <a class="navbar-brand fw-bold" href="index.php">
-            🌱 Give & Take
+            <i class="bi bi-recycle me-1"></i>
+            Sống Xanh Sharing
         </a>
 
         <button class="navbar-toggler" type="button"
                 data-bs-toggle="collapse"
-                data-bs-target="#navbarNav">
+                data-bs-target="#navbarMenu"
+                aria-controls="navbarMenu"
+                aria-expanded="false"
+                aria-label="Mở menu">
             <span class="navbar-toggler-icon"></span>
         </button>
 
-        <div class="collapse navbar-collapse" id="navbarNav">
+        <div class="collapse navbar-collapse" id="navbarMenu">
 
-            <ul class="navbar-nav me-auto">
+            <ul class="navbar-nav ms-auto align-items-lg-center">
+
                 <li class="nav-item">
-                    <a class="nav-link" href="index.php">Trang chủ</a>
+                    <a class="nav-link" href="index.php">
+                        Trang chủ
+                    </a>
                 </li>
 
                 <li class="nav-item">
-                    <a class="nav-link"
-                       href="index.php?controller=home&action=blog">
-                        Góc sống xanh
+                    <a class="nav-link" href="index.php#categories">
+                        Danh mục
                     </a>
                 </li>
-            </ul>
 
-            <div class="d-flex gap-2">
-                <?php if (!empty($_SESSION['user_id'])): ?>
-
-                    <a href="index.php?controller=item&action=create"
-                       class="btn btn-warning btn-sm fw-bold">
-                        <i class="bi bi-gift me-1"></i> Đăng tặng đồ
+                <li class="nav-item">
+                    <a class="nav-link" href="index.php#products">
+                        Đồ chia sẻ
                     </a>
+                </li>
 
-                    <span class="navbar-text text-white">
-                        Xin chào, <?= htmlspecialchars($_SESSION['username'] ?? 'bạn') ?>
-                    </span>
+                <?php if ($isLoggedIn): ?>
 
-                    <a href="index.php?controller=auth&action=logout"
-                       class="btn btn-outline-light btn-sm">
-                        Đăng xuất
-                    </a>
+                    <li class="nav-item">
+                        <a class="nav-link"
+                           href="index.php?controller=Item&action=create">
+                            <i class="bi bi-plus-circle me-1"></i>
+                            Đăng đồ tặng
+                        </a>
+                    </li>
+
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle"
+                           href="#"
+                           role="button"
+                           data-bs-toggle="dropdown"
+                           aria-expanded="false">
+
+                            <i class="bi bi-person-circle me-1"></i>
+                            <?= htmlspecialchars($username, ENT_QUOTES, 'UTF-8') ?>
+
+                        </a>
+
+                        <ul class="dropdown-menu dropdown-menu-end">
+
+                            <li>
+                                <a class="dropdown-item"
+                                   href="index.php?controller=User&action=profile">
+                                    <i class="bi bi-person me-2"></i>
+                                    Tài khoản của tôi
+                                </a>
+                            </li>
+
+                            <li><hr class="dropdown-divider"></li>
+
+                            <li>
+                                <a class="dropdown-item text-danger"
+                                   href="index.php?controller=Auth&action=logout">
+                                    <i class="bi bi-box-arrow-right me-2"></i>
+                                    Đăng xuất
+                                </a>
+                            </li>
+
+                        </ul>
+                    </li>
 
                 <?php else: ?>
 
-                    <a href="index.php?controller=auth&action=login"
-                       class="btn btn-outline-light btn-sm">
-                        Đăng nhập
-                    </a>
+                    <li class="nav-item">
+                        <a class="nav-link"
+                           href="index.php?controller=Auth&action=login">
+                            Đăng nhập
+                        </a>
+                    </li>
 
-                    <a href="index.php?controller=auth&action=register"
-                       class="btn btn-warning btn-sm fw-bold">
-                        Đăng ký
-                    </a>
+                    <li class="nav-item">
+                        <a class="btn btn-light text-success fw-bold ms-lg-2 px-3"
+                           href="index.php?controller=Auth&action=register">
+                            Đăng ký
+                        </a>
+                    </li>
 
                 <?php endif; ?>
-            </div>
 
+            </ul>
         </div>
     </div>
 </nav>

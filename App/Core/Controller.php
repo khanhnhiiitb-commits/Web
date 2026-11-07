@@ -20,18 +20,30 @@ class Controller
     }
 
     // Gọi View
-    public function view($view, $data = [])
-    {
-        extract($data);
+    // Gọi View thông qua layout chung
+public function view($view, $data = [])
+{
+    extract($data);
 
-        $viewPath = __DIR__ . '/../Views/' . $view . '.php';
+    $viewPath = __DIR__ . '/../Views/' . $view . '.php';
+    $layoutPath = __DIR__ . '/../Views/layouts/main.php';
 
-        if (file_exists($viewPath)) {
-            require $viewPath;
-        } else {
-            die("Không tìm thấy View: " . $viewPath);
-        }
+    if (!file_exists($viewPath)) {
+        die("Không tìm thấy View: " . $viewPath);
     }
+
+    // Lấy nội dung View
+    ob_start();
+    require $viewPath;
+    $content = ob_get_clean();
+
+    // Hiển thị thông qua layout nếu tồn tại
+    if (file_exists($layoutPath)) {
+        require $layoutPath;
+    } else {
+        echo $content;
+    }
+}
 
     protected function requireLogin(): void
 {

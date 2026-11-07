@@ -1,5 +1,6 @@
 <?php
 session_start();
+require_once __DIR__ . '/App/Config/config.php';
 
 spl_autoload_register(function ($class) {
     $prefix = 'App\\';

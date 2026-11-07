@@ -1,107 +1,84 @@
 <?php
-function escapeManageRequestText($value)
-{
-    return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
-}
+$title = 'Quản lý đồ nhận - Give & Take';
+require_once __DIR__ . '/../layouts/header.php';
 ?>
 
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Duyệt người xin đồ</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-          rel="stylesheet">
-</head>
-<body class="bg-light">
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-success"><i class="fa-solid fa-gift me-2"></i> Danh sách đồ tôi đăng ký nhận</h2>
+            <p class="text-muted mb-0">Theo dõi trạng thái các món đồ bạn đã gửi yêu cầu xin từ cộng đồng.</p>
+        </div>
+        <a href="index.php?controller=home&action=search" class="btn btn-success btn-sm">
+            <i class="fa-solid fa-magnifying-glass me-1"></i> Tìm thêm đồ khác
+        </a>
+    </div>
 
-<div class="container py-5">
-    <h2 class="mb-2">Duyệt người xin đồ của mình</h2>
-    <p class="text-muted mb-4">
-        Xem lời nhắn và chọn đồng ý hoặc từ chối yêu cầu nhận đồ.
-    </p>
-
-    <?php if (!empty($_SESSION['request_message'])): ?>
-        <div class="alert alert-info">
-            <?= escapeManageRequestText($_SESSION['request_message']) ?>
+    <?php if (isset($_SESSION['request_message'])): ?>
+        <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+            <i class="fa-solid fa-circle-check me-2"></i> <?= htmlspecialchars($_SESSION['request_message']) ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
         <?php unset($_SESSION['request_message']); ?>
     <?php endif; ?>
 
-    <div class="card shadow-sm">
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-bordered table-hover align-middle">
-                    <thead class="table-success">
-                        <tr>
-                            <th>STT</th>
-                            <th>Món đồ</th>
-                            <th>Người xin</th>
-                            <th>Lời nhắn</th>
-                            <th>Thao tác</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-                    <?php if (!empty($requests)): ?>
-                        <?php foreach ($requests as $index => $request): ?>
-                            <tr>
-                                <td><?= $index + 1 ?></td>
-
-                                <td>
-                                    <?= escapeManageRequestText($request['item_title']) ?>
-                                </td>
-
-                                <td>
-                                    <?= escapeManageRequestText($request['requester_name']) ?>
-                                </td>
-
-                                <td>
-                                    <?= nl2br(escapeManageRequestText($request['message'])) ?>
-                                </td>
-
-                                <td>
-                                    <div class="d-flex flex-wrap gap-2">
-                                        <form method="POST"
-                                              action="<?= BASE_URL ?>request/accept/<?= (int) $request['request_id'] ?>"
-                                              onsubmit="return confirm('Bạn có chắc muốn đồng ý cho món đồ này?');">
-                                            <button type="submit"
-                                                    class="btn btn-success">
-                                                Đồng Ý Cho
-                                            </button>
-                                        </form>
-
-                                        <form method="POST"
-                                              action="<?= BASE_URL ?>request/reject/<?= (int) $request['request_id'] ?>"
-                                              onsubmit="return confirm('Bạn có chắc muốn từ chối yêu cầu này?');">
-                                            <button type="submit"
-                                                    class="btn btn-danger">
-                                                Từ Chối
-                                            </button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    <?php else: ?>
-                        <tr>
-                            <td colspan="5" class="text-center py-4">
-                                Hiện không có yêu cầu nào đang chờ duyệt.
-                            </td>
-                        </tr>
-                    <?php endif; ?>
-                    </tbody>
-                </table>
-            </div>
+    <?php if (empty($requests)): ?>
+        <div class="text-center py-5 bg-white rounded-4 shadow-sm">
+            <div class="display-4 text-muted mb-3">📦</div>
+            <h5 class="text-secondary fw-semibold">Bạn chưa đăng ký nhận món đồ nào.</h5>
+            <p class="text-muted small">Hãy khám phá các món đồ đang được chia sẻ và gửi yêu cầu nhận nhé!</p>
+            <a href="index.php?controller=home&action=search" class="btn btn-success btn-sm mt-2">
+                <i class="fa-solid fa-compass me-1"></i> Khám phá ngay
+            </a>
         </div>
-    </div>
+    <?php else: ?>
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            <?php foreach ($requests as $req): ?>
+                <div class="col">
+                    <div class="card h-100 shadow-sm border-0 rounded-4 overflow-hidden">
+                        <div class="card-body d-flex flex-column p-4">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <h5 class="card-title fw-bold text-dark mb-0">
+                                    <?= htmlspecialchars($req['item_title'] ?? 'Món đồ') ?>
+                                </h5>
+                                <?php 
+                                    $statusClass = 'bg-secondary';
+                                    $statusText = 'Đang chờ';
+                                    if ($req['request_status'] === 'accepted') {
+                                        $statusClass = 'bg-success';
+                                        $statusText = 'Đã chấp nhận';
+                                    } elseif ($req['request_status'] === 'rejected') {
+                                        $statusClass = 'bg-danger';
+                                        $statusText = 'Đã từ chối';
+                                    }
+                                ?>
+                                <span class="badge <?= $statusClass ?> px-2 py-1"><?= $statusText ?></span>
+                            </div>
 
-    <a href="<?= BASE_URL ?>item/myItems"
-       class="btn btn-outline-secondary mt-3">
-        Quay lại đồ của tôi
-    </a>
+                            <p class="text-muted small mb-2">
+                                <i class="fa-solid fa-message text-success me-1"></i> Lời nhắn của bạn: 
+                                <span class="text-dark fst-italic">"<?= htmlspecialchars($req['message'] ?: 'Không có lời nhắn') ?>"</span>
+                            </p>
+
+                            <p class="text-muted small mb-3">
+                                <i class="fa-solid fa-clock text-secondary me-1"></i> Ngày gửi: 
+                                <span class="text-dark"><?= date('d/m/Y H:i', strtotime($req['created_at'])) ?></span>
+                            </p>
+
+                            <div class="mt-auto pt-2 border-top d-flex justify-content-between align-items-center">
+                                <span class="small text-success fw-semibold">
+                                    <i class="fa-solid fa-shield-heart me-1"></i> Give & Take
+                                </span>
+                                <a href="index.php?controller=item&action=detail&id=<?= $req['item_id'] ?? 0 ?>" class="btn btn-outline-success btn-sm rounded-pill">
+                                    Xem chi tiết đồ
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
 </div>
 
-</body>
-</html>
+<?php require_once __DIR__ . '/../layouts/footer.php'; ?>

@@ -1,95 +1,126 @@
 <?php
+
 namespace App\Models;
 
 use App\Core\Model;
+use PDO;
 
-class ItemModel extends Model {
-    public function insertItem($userId, $categoryId, $title, $description, $conditionNote, $pickupLocation, $imageUrl) {
-        $sql = "INSERT INTO items (user_id, category_id, title, description, condition_note, pickup_location, image_url, status) 
-                VALUES (:user_id, :category_id, :title, :description, :condition_note, :pickup_location, :image_url, 'available')";
-        
+class ItemModel extends Model
+{
+    // Thêm món đồ mới
+    public function insertItem(array $data): bool
+    {
+        $sql = "INSERT INTO items
+                (user_id, category_id, title, description,
+                 condition_note, image_url, pickup_location, status)
+                VALUES
+                (:user_id, :category_id, :title, :description,
+                 :condition_note, :image_url, :pickup_location, 'available')";
+
         $stmt = $this->db->prepare($sql);
+
         return $stmt->execute([
-            'user_id' => $userId,
-            'category_id' => $categoryId,
-            'title' => $title,
-            'description' => $description,
-            'condition_note' => $conditionNote,
-            'pickup_location' => $pickupLocation,
-            'image_url' => $imageUrl
+            ':user_id'        => $data['user_id'],
+            ':category_id'    => $data['category_id'],
+            ':title'          => $data['title'],
+            ':description'    => $data['description'],
+            ':condition_note' => $data['condition_note'],
+            ':image_url'      => $data['image_url'],
+            ':pickup_location'=> $data['pickup_location']
         ]);
     }
 
-    // Hàm lấy danh sách đồ do chính mình đăng
-    public function getMyItems($userId) {
-        $sql = "SELECT items.*, categories.name as category_name 
-                FROM items 
-                JOIN categories ON items.category_id = categories.id 
-                WHERE items.user_id = :user_id 
-                ORDER BY items.created_at DESC";
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute(['user_id' => $userId]);
-        return $stmt->fetchAll();
-    }
-    public function getAvailableItems() {
-        $sql = "SELECT items.*, categories.name as category_name 
-                FROM items 
-                JOIN categories ON items.category_id = categories.id 
-                WHERE items.status = 'available' 
-                ORDER BY items.created_at DESC";
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute();
-        return $stmt->fetchAll();
-    }
-    // Lấy tất cả danh mục
-    public function getCategories()
+    // Lấy danh sách món đồ đang chia sẻ
+    public function getAvailableItems(): array
     {
-     $sql = "SELECT * FROM categories ORDER BY name ASC";
+        $sql = "SELECT
+                    i.*,
+                    c.name AS category_name,
+                    u.full_name AS owner_name
+                FROM items i
+                INNER JOIN categories c ON i.category_id = c.id
+                INNER JOIN users u ON i.user_id = u.id
+                WHERE i.status = 'available'
+                ORDER BY i.created_at DESC";
 
-     $stmt = $this->db->prepare($sql);
-     $stmt->execute();
-
-    return $stmt->fetchAll();
+        return $this->db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
     }
-    public function searchItems($keyword, $categoryId) {
-        $sql = "SELECT items.*, categories.name as category_name 
-                FROM items 
-                JOIN categories ON items.category_id = categories.id 
-                WHERE items.status = 'available'";
-        
+
+    // Tìm kiếm và lọc món đồ
+    public function searchItems(
+        string $keyword = '',
+        ?int $categoryId = null,
+        string $location = ''
+    ): array {
+        $sql = "SELECT
+                    i.*,
+                    c.name AS category_name,
+                    u.full_name AS owner_name
+                FROM items i
+                INNER JOIN categories c ON i.category_id = c.id
+                INNER JOIN users u ON i.user_id = u.id
+                WHERE i.status = 'available'";
+
         $params = [];
-        if (!empty($keyword)) {
-            $sql .= " AND items.title LIKE :keyword";
-            $params['keyword'] = "%$keyword%";
+
+        if ($keyword !== '') {
+            $sql .= " AND (i.title LIKE :keyword
+                       OR i.description LIKE :keyword
+                       OR i.condition_note LIKE :keyword)";
+            $params[':keyword'] = '%' . $keyword . '%';
         }
-        if (!empty($categoryId)) {
-            $sql .= " AND items.category_id = :category_id";
-            $params['category_id'] = $categoryId;
+
+        if ($categoryId !== null && $categoryId > 0) {
+            $sql .= " AND i.category_id = :category_id";
+            $params[':category_id'] = $categoryId;
         }
-        $sql .= " ORDER BY items.created_at DESC";
+
+        if ($location !== '') {
+            $sql .= " AND i.pickup_location LIKE :location";
+            $params[':location'] = '%' . $location . '%';
+        }
+
+        $sql .= " ORDER BY i.created_at DESC";
 
         $stmt = $this->db->prepare($sql);
         $stmt->execute($params);
-        return $stmt->fetchAll();
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
-    
-// Lấy chi tiết sản phẩm đang còn khả dụng
-public function getItemById($id)
-{
-    $sql = "SELECT
-                items.*,
-                categories.name AS category_name
-            FROM items
-            JOIN categories
-                ON items.category_id = categories.id
-            WHERE items.id = :id
-            AND items.status = 'available'
-            LIMIT 1";
 
-    $stmt = $this->db->prepare($sql);
-    $stmt->execute(['id' => $id]);
+    // Lấy chi tiết một món đồ
+    public function getItemById(int $id): ?array
+    {
+        $sql = "SELECT
+                    i.*,
+                    c.name AS category_name,
+                    u.full_name AS owner_name
+                FROM items i
+                INNER JOIN categories c ON i.category_id = c.id
+                INNER JOIN users u ON i.user_id = u.id
+                WHERE i.id = :id AND i.status = 'available'
+                LIMIT 1";
 
-    return $stmt->fetch();
-}
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([':id' => $id]);
 
+        $item = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $item ?: null;
+    }
+
+    // Lấy danh sách món đồ của người đang đăng nhập
+    public function getMyItems(int $userId): array
+    {
+        $sql = "SELECT i.*, c.name AS category_name
+                FROM items i
+                INNER JOIN categories c ON i.category_id = c.id
+                WHERE i.user_id = :user_id
+                ORDER BY i.created_at DESC";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([':user_id' => $userId]);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }

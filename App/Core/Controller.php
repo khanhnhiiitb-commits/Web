@@ -33,20 +33,13 @@ class Controller
         }
     }
 
-    // Kiểm tra đăng nhập
-    protected function requireLogin()
-    {
-        if (empty($_SESSION['user_id'])) {
-
-            // Lưu địa chỉ người dùng muốn truy cập
-            $_SESSION['redirect_after_login'] =
-                $_SERVER['QUERY_STRING'] ?? '';
-
-            header('Location: index.php?controller=Auth&action=login');
-            exit;
-        }
+    protected function requireLogin(): void
+{
+    if (empty($_SESSION['user_id'])) {
+        header('Location: index.php?controller=Auth&action=login');
+        exit;
     }
-
+}
     // Chuyển hướng
     public function redirect($url)
     {

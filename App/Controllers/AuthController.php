@@ -7,167 +7,146 @@ use PDOException;
 
 class AuthController extends Controller
 {
-    // Hiển thị form đăng nhập
+    private $userModel;
+
+    public function __construct()
+    {
+        $this->userModel = new UserModel();
+    }
+
+    // Hiển thị trang đăng nhập
     public function login()
-{
-    $error = '';
-    $success = $_SESSION['success'] ?? '';
+    {
+        $success = $_SESSION['success'] ?? '';
+        unset($_SESSION['success']);
 
-    unset($_SESSION['success']);
+        $this->view('auth/login', [
+            'error' => '',
+            'success' => $success
+        ]);
+    }
 
-    $this->view('auth/login', [
-        'error' => $error,
-        'success' => $success
-    ]);
-}
-
-    // Hiển thị form đăng ký
+    // Hiển thị trang đăng ký
     public function register()
-{
-    $error = '';
-    $success = '';
+    {
+        $this->view('auth/register', [
+            'error' => '',
+            'success' => ''
+        ]);
+    }
 
-    $this->view('auth/register', [
-        'error' => $error,
-        'success' => $success
-    ]);
-}
-
-    // Xử lý dữ liệu đăng nhập từ form
+    // Xử lý đăng nhập
     public function postLogin()
     {
-        $email = trim($_POST['email'] ?? '');
+        $email = strtolower(trim($_POST['email'] ?? ''));
         $password = $_POST['password'] ?? '';
 
-        // Kiểm tra dữ liệu đầu vào
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $error = 'Email không đúng định dạng.';
-          $this->view('auth/login', [
-             'error' => $error,
-              'success' => ''
-              ]);
-            return;           
+            $this->view('auth/login', [
+                'error' => 'Email không đúng định dạng.',
+                'success' => ''
+            ]);
+            return;
         }
 
         if ($password === '') {
-            $error = 'Vui lòng nhập mật khẩu.';
-$this->view('auth/login', [
-    'error' => $error,
-    'success' => ''
-]);
-return;            return;
+            $this->view('auth/login', [
+                'error' => 'Vui lòng nhập mật khẩu.',
+                'success' => ''
+            ]);
+            return;
         }
 
-        $userModel = new UserModel();
-        $user = $userModel->findByEmail($email);
+        try {
+            $user = $this->userModel->findByEmail($email);
 
-        // Kiểm tra tài khoản và mật khẩu
-        if (!$user || !password_verify($password, $user['password_hash'])) {
-            $error = 'Email hoặc mật khẩu không chính xác.';
-$this->view('auth/login', [
-    'error' => $error,
-    'success' => ''
-]);
-return;         
+            if (!$user || !password_verify($password, $user['password_hash'])) {
+                $this->view('auth/login', [
+                    'error' => 'Email hoặc mật khẩu không chính xác.',
+                    'success' => ''
+                ]);
+                return;
+            }
+
+            // Chỉ cho phép tài khoản đang hoạt động đăng nhập
+            if ((int)$user['status'] !== 1) {
+                $this->view('auth/login', [
+                    'error' => 'Tài khoản của bạn hiện đã bị khóa.',
+                    'success' => ''
+                ]);
+                return;
+            }
+
+            // Đăng nhập thành công
+            session_regenerate_id(true);
+
+            $_SESSION['user_id'] = $user['id'];
+            $_SESSION['role'] = $user['role'];
+            $_SESSION['username'] = $user['full_name'];
+
+            $redirect = $_SESSION['redirect_after_login'] ?? '';
+            unset($_SESSION['redirect_after_login']);
+
+            if ($redirect !== '') {
+                header('Location: index.php?' . $redirect);
+            } else {
+                header('Location: index.php?controller=Home&action=index');
+            }
+
+            exit;
+
+        } catch (PDOException $e) {
+            error_log('LOGIN ERROR: ' . $e->getMessage());
+
+            $this->view('auth/login', [
+                'error' => 'Có lỗi xảy ra khi đăng nhập. Vui lòng thử lại.',
+                'success' => ''
+            ]);
+            return;
         }
-
-        // Không cho đăng nhập tài khoản đã bị khóa
-        if (isset($user['status']) && (int) $user['status'] !== 1) {
-            $error = 'Tài khoản của bạn hiện đã bị khóa.';
-$this->view('auth/login', [
-    'error' => $error,
-    'success' => ''
-]);
-return;           
-        }
-
-        // Đăng nhập thành công: lưu thông tin vào Session
-        session_regenerate_id(true);
-
-        $_SESSION['user_id'] = $user['id'];
-        $_SESSION['role'] = $user['role'];
-        $_SESSION['username'] = $user['full_name'];
-
-       // Lấy trang người dùng muốn truy cập trước khi đăng nhập
-$redirect = $_SESSION['redirect_after_login'] ?? '';
-
-unset($_SESSION['redirect_after_login']);
-
-// Nếu có trang cần quay lại thì chuyển về trang đó
-if ($redirect !== '') {
-    header('Location: index.php?' . $redirect);
-} else {
-    header('Location: index.php?controller=Home&action=index');
-}
-
-exit;
     }
 
-    // Xử lý dữ liệu đăng ký từ form
+    // Xử lý đăng ký
     public function postRegister()
     {
         $fullName = trim($_POST['full_name'] ?? '');
-        $email = trim($_POST['email'] ?? '');
+        $email = strtolower(trim($_POST['email'] ?? ''));
         $password = $_POST['password'] ?? '';
         $confirmPassword = $_POST['confirm_password'] ?? '';
         $phone = trim($_POST['phone'] ?? '');
         $address = trim($_POST['address'] ?? '');
 
-        // Kiểm tra họ tên
+        $error = '';
+
         if ($fullName === '') {
             $error = 'Vui lòng nhập họ tên.';
-$this->view('auth/register', [
-    'error' => $error,
-    'success' => $success
-]);
-return;          
-        }
-
-        // Kiểm tra định dạng email
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $error = 'Email không đúng định dạng.';
-$this->view('auth/register', [
-    'error' => $error,
-    'success' => $success
-]);
-return;           
-        }
-
-        // Kiểm tra độ dài mật khẩu
-        if (strlen($password) < 8) {
+        } elseif (strlen($password) < 8) {
             $error = 'Mật khẩu phải có ít nhất 8 ký tự.';
-$this->view('auth/register', [
-    'error' => $error,
-    'success' => $success
-]);
-return;            
-        }
-
-        // Kiểm tra mật khẩu xác nhận
-        if ($password !== $confirmPassword) {
+        } elseif ($password !== $confirmPassword) {
             $error = 'Mật khẩu xác nhận không khớp.';
-$this->view('auth/register', [
-    'error' => $error,
-    'success' => $success
-]);
-return;            
         }
 
-        $userModel = new UserModel();
-
-        // Kiểm tra email đã được sử dụng chưa
-        if ($userModel->findByEmail($email)) {
-            $error = 'Email này đã được đăng ký.';
-$this->view('auth/register', [
-    'error' => $error,
-    'success' => $success
-]);
-return;          
+        if ($error !== '') {
+            $this->view('auth/register', [
+                'error' => $error,
+                'success' => ''
+            ]);
+            return;
         }
 
-        // Tạo tài khoản mới
         try {
-            $created = $userModel->createUser([
+            // Kiểm tra email đã tồn tại
+            if ($this->userModel->findByEmail($email)) {
+                $this->view('auth/register', [
+                    'error' => 'Email này đã được đăng ký.',
+                    'success' => ''
+                ]);
+                return;
+            }
+
+            $created = $this->userModel->createUser([
                 'full_name' => $fullName,
                 'email' => $email,
                 'password' => $password,
@@ -176,29 +155,46 @@ return;
             ]);
 
             if ($created) {
-                $success = 'Đăng ký thành công! Bạn có thể đăng nhập ngay.';
-                $error = '';
-            } else {
-                $error = 'Đăng ký chưa thành công. Vui lòng thử lại.';
-                $success = '';
+                $_SESSION['success'] = 'Đăng ký thành công! Bạn hãy đăng nhập.';
+                header('Location: index.php?controller=Auth&action=login');
+                exit;
             }
+
+            $error = 'Đăng ký chưa thành công. Vui lòng thử lại.';
+
         } catch (PDOException $e) {
+            error_log('REGISTER ERROR: ' . $e->getMessage());
             $error = 'Không thể tạo tài khoản. Vui lòng kiểm tra lại thông tin.';
-            $success = '';
         }
 
         $this->view('auth/register', [
-         'error' => $error,
-         'success' => $success
-            ]);
-return;    }
+            'error' => $error,
+            'success' => ''
+        ]);
+    }
 
-   public function logout()
-{
-    session_unset();
-    session_destroy();
+    // Đăng xuất
+    public function logout()
+    {
+        $_SESSION = [];
 
-    header('Location: index.php?controller=Home&action=index');
-    exit;
-}
+        if (ini_get('session.use_cookies')) {
+            $params = session_get_cookie_params();
+
+            setcookie(
+                session_name(),
+                '',
+                time() - 42000,
+                $params['path'],
+                $params['domain'],
+                $params['secure'],
+                $params['httponly']
+            );
+        }
+
+        session_destroy();
+
+        header('Location: index.php?controller=Home&action=index');
+        exit;
+    }
 }

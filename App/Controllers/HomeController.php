@@ -140,3 +140,4 @@ public function searchAjax()
 
     exit;
 }
+}

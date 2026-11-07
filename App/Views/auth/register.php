@@ -18,13 +18,18 @@
                     <h2 class="text-center mb-4">Đăng ký tài khoản</h2>
 
                     <?php if (!empty($error)): ?>
-                        <div class="alert alert-danger">
-                            <?= htmlspecialchars($error) ?>
-                        </div>
+                     <div class="alert alert-danger">
+                          <?= htmlspecialchars($error) ?>
+                      </div>
                     <?php endif; ?>
 
+                    <?php if (!empty($success)): ?>
+                     <div class="alert alert-success">
+                     <?= htmlspecialchars($success) ?>
+                    </div>
+                    <?php endif; ?>
                     <form method="POST"
-                          action="index.php?controller=auth&action=register">
+                          action="index.php?controller=Auth&action=postRegister">
 
                         <div class="mb-3">
                             <label class="form-label">Họ và tên *</label>
@@ -52,6 +57,14 @@
                             <input type="password" name="password"
                                    class="form-control" required
                                    minlength="8">
+                        </div>
+                        <div class="mb-3">
+                              <label class="form-label">Xác nhận mật khẩu *</label>
+                              <input type="password"
+                                    name="confirm_password"
+                                       class="form-control"
+                                      minlength="8"
+                                     required>
                         </div>
 
                         <button type="submit"

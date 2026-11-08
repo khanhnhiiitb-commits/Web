@@ -37,7 +37,7 @@ class AdminController extends Controller
         $totalPosts = (int) $db->query("SELECT COUNT(*) FROM posts")->fetchColumn();
         $totalRequests = (int) $db->query("SELECT COUNT(*) FROM item_requests")->fetchColumn();
 
-        $stmt = $db->prepare("SELECT COUNT(*) FROM item_requests WHERE status = 'pending'");
+       $stmt = $db->prepare("SELECT COUNT(*) FROM posts WHERE status = 'pending'");
         $stmt->execute();
         $pendingRequests = (int) $stmt->fetchColumn();
 
@@ -77,7 +77,7 @@ class AdminController extends Controller
         $this->view('admin/manage_users', ['users' => $users], 'admin_layout');
     }
 
-    public function updateUserStatus()
+   public function updateUserStatus()
     {
         $this->checkAdmin();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -89,7 +89,9 @@ class AdminController extends Controller
                 $userModel->updateStatus($id, $status);
             }
         }
-        header('Location: ' . BASE_URL . 'index.php?controller=Admin&action=users');
+        
+        // Tự động quay lại chính trang vừa thao tác
+        header('Location: ' . $_SERVER['HTTP_REFERER']);
         exit;
     }
 
@@ -112,15 +114,12 @@ class AdminController extends Controller
                 $stmt->execute(['id' => $id]);
             }
         }
-        if (isset($_SERVER['HTTP_REFERER']) && strpos($_SERVER['HTTP_REFERER'], 'dashboard') !== false) {
-            header('Location: ' . BASE_URL . 'index.php?controller=Admin&action=dashboard');
-        } else {
-            header('Location: ' . BASE_URL . 'index.php?controller=Admin&action=products');
-        }
+        
+        header('Location: ' . $_SERVER['HTTP_REFERER']);
         exit;
     }
 
-    public function deleteProduct()
+   public function deleteProduct()
     {
         $this->checkAdmin();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -131,7 +130,9 @@ class AdminController extends Controller
                 $stmt->execute(['id' => $id]);
             }
         }
-        header('Location: ' . BASE_URL . 'index.php?controller=Admin&action=products');
+        
+        // Tự động quay lại chính trang vừa thao tác
+        header('Location: ' . $_SERVER['HTTP_REFERER']);
         exit;
     }
 
@@ -156,12 +157,12 @@ class AdminController extends Controller
         $this->checkAdmin();
         $db = Database::getConnection();
 
-        // 1. Lấy dữ liệu thống kê tổng quát
+        // 1. Lấy dữ liệu thống kê
         $totalUsers = (int) $db->query("SELECT COUNT(*) FROM users")->fetchColumn();
         $totalPosts = (int) $db->query("SELECT COUNT(*) FROM posts")->fetchColumn();
         $totalRequests = (int) $db->query("SELECT COUNT(*) FROM item_requests")->fetchColumn();
 
-        // 2. Lấy dữ liệu 50 giao dịch gần nhất để xuất ra chi tiết
+        // 2. Lấy dữ liệu 50 giao dịch
         $recentTransactions = $db->query(
             "SELECT item_requests.id, item_requests.status, item_requests.created_at, users.full_name as requester_name 
              FROM item_requests 
@@ -169,44 +170,58 @@ class AdminController extends Controller
              ORDER BY item_requests.id DESC LIMIT 50"
         )->fetchAll(PDO::FETCH_ASSOC);
 
-        // 3. Thiết lập Header để trình duyệt hiểu đây là file tải về dạng CSV (Excel đọc được)
-        header('Content-Type: text/csv; charset=utf-8');
-        header('Content-Disposition: attachment; filename="BaoCao_SongXanh_' . date('Ymd_His') . '.csv"');
+        // 3. Đổi Header sang định dạng chuẩn XLS của Excel
+        $filename = "BaoCao_SongXanh_" . date('Ymd_His') . ".xls";
+        header("Content-Type: application/vnd.ms-excel; charset=utf-8");
+        header("Content-Disposition: attachment; filename=\"$filename\"");
         
-        // Fix lỗi font tiếng Việt khi mở bằng Excel (Thêm BOM)
-        echo "\xEF\xBB\xBF"; 
-
-        $output = fopen('php://output', 'w');
-
-        // Ghi phần thống kê tổng quan
-        fputcsv($output, ['--- BÁO CÁO VẬN HÀNH SỐNG XANH SHARING ---']);
-        fputcsv($output, ['Ngày xuất:', date('d/m/Y H:i:s')]);
-        fputcsv($output, []);
-        fputcsv($output, ['TỔNG QUAN HỆ THỐNG']);
-        fputcsv($output, ['Tổng số tài khoản:', $totalUsers]);
-        fputcsv($output, ['Tổng số bài đăng:', $totalPosts]);
-        fputcsv($output, ['Tổng giao dịch:', $totalRequests]);
-        fputcsv($output, []);
+        // 4. In ra mã HTML được style bằng CSS
+        echo '<html xmlns:x="urn:schemas-microsoft-com:office:excel">';
+        echo '<head><meta charset="UTF-8"></head>';
+        echo '<body>';
         
-        // Ghi tiêu đề các cột cho bảng giao dịch
-        fputcsv($output, ['CHI TIẾT 50 GIAO DỊCH GẦN NHẤT']);
-        fputcsv($output, ['Mã Đơn', 'Người Nhận', 'Trạng Thái', 'Ngày Tạo']);
+        // Tiêu đề báo cáo
+        echo '<h2 style="color: #198754; text-align: center; font-size: 24px;">BÁO CÁO VẬN HÀNH SỐNG XANH SHARING</h2>';
+        echo '<p><strong>Ngày xuất:</strong> ' . date('d/m/Y H:i:s') . '</p>';
+        
+        // Bảng 1: Thống kê tổng quan
+        echo '<table border="1" cellpadding="8" style="border-collapse: collapse; width: 100%; font-family: Arial;">';
+        echo '<tr style="background-color: #198754; color: white; font-weight: bold;"><td colspan="2" style="text-align: center;">TỔNG QUAN HỆ THỐNG</td></tr>';
+        echo '<tr><td style="width: 200px;"><strong>Tổng số tài khoản:</strong></td><td style="text-align: right;">' . $totalUsers . '</td></tr>';
+        echo '<tr><td><strong>Tổng số bài đăng:</strong></td><td style="text-align: right;">' . $totalPosts . '</td></tr>';
+        echo '<tr><td><strong>Tổng giao dịch:</strong></td><td style="text-align: right;">' . $totalRequests . '</td></tr>';
+        echo '</table><br><br>';
+        
+        // Bảng 2: Chi tiết giao dịch
+        echo '<table border="1" cellpadding="8" style="border-collapse: collapse; width: 100%; font-family: Arial;">';
+        echo '<tr style="background-color: #0dcaf0; color: white; font-weight: bold;"><td colspan="4" style="text-align: center;">CHI TIẾT 50 GIAO DỊCH GẦN NHẤT</td></tr>';
+        echo '<tr style="background-color: #f8f9fa; font-weight: bold; text-align: center;">
+                <td style="width: 80px;">Mã Đơn</td>
+                <td style="width: 250px;">Người Nhận</td>
+                <td style="width: 150px;">Trạng Thái</td>
+                <td style="width: 200px;">Ngày Tạo</td>
+              </tr>';
 
-        // Ghi dữ liệu từng dòng
         if (!empty($recentTransactions)) {
             foreach ($recentTransactions as $row) {
-                fputcsv($output, [
-                    $row['id'],
-                    $row['requester_name'] ?? 'Ẩn danh',
-                    $row['status'],
-                    $row['created_at'] ?? 'Không rõ'
-                ]);
+                // Tô màu trạng thái
+                $statusColor = 'black';
+                if ($row['status'] === 'completed') $statusColor = '#198754'; // Xanh lá
+                if ($row['status'] === 'pending') $statusColor = '#fd7e14'; // Cam
+
+                echo '<tr>';
+                echo '<td style="text-align: center;">#' . $row['id'] . '</td>';
+                echo '<td>' . htmlspecialchars($row['requester_name'] ?? 'Ẩn danh') . '</td>';
+                echo '<td style="color: ' . $statusColor . '; font-weight: bold; text-align: center;">' . strtoupper($row['status']) . '</td>';
+                echo '<td style="text-align: center;">' . ($row['created_at'] ?? 'Chưa rõ') . '</td>';
+                echo '</tr>';
             }
         } else {
-            fputcsv($output, ['Không có dữ liệu giao dịch nào.']);
+            echo '<tr><td colspan="4" style="text-align: center; color: red;">Không có dữ liệu giao dịch nào.</td></tr>';
         }
-
-        fclose($output);
+        
+        echo '</table>';
+        echo '</body></html>';
         exit;
     }
 }

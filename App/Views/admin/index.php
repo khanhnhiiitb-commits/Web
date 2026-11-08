@@ -7,10 +7,10 @@
             <p class="text-secondary mb-0">Xin chào Admin, dưới đây là tình hình hoạt động của cộng đồng hôm nay.</p>
         </div>
         <div>
-            <div class="btn-group shadow-sm me-3" role="group">
-                <button type="button" class="btn btn-white text-secondary bg-white border border-end-0">Hôm nay</button>
-                <button type="button" class="btn btn-white text-secondary bg-white border border-end-0">7 ngày qua</button>
-                <button type="button" class="btn btn-success fw-bold">Tháng này</button>
+           <div class="btn-group shadow-sm me-3" role="group">
+                <a href="?controller=Admin&action=dashboard" class="btn btn-white text-secondary bg-white border border-end-0">Hôm nay</a>
+                <a href="?controller=Admin&action=dashboard" class="btn btn-white text-secondary bg-white border border-end-0">7 ngày qua</a>
+                <a href="?controller=Admin&action=dashboard" class="btn btn-success fw-bold">Tháng này</a>
             </div>
 <a href="index.php?controller=Admin&action=exportExcel" class="btn btn-success shadow-sm fw-bold"><i class="bi bi-file-earmark-excel"></i> Xuất báo cáo Excel</a>        </div>
     </div>

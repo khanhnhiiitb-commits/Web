@@ -1,65 +1,235 @@
+
 <?php
-session_start();
-require_once '../../Config/config.php';
-$id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+if (!function_exists('e')) {
+    function e($value): string
+    {
+        return htmlspecialchars(
+            (string)($value ?? ''),
+            ENT_QUOTES,
+            'UTF-8'
+        );
+    }
+}
 
-$stmt = $pdo->prepare("SELECT i.*, c.name as category_name, u.full_name, u.phone 
-                       FROM items i 
-                       JOIN categories c ON i.category_id = c.id 
-                       JOIN users u ON i.user_id = u.id 
-                       WHERE i.id = ?");
-$stmt->execute([$id]);
-$item = $stmt->fetch();
+if (!function_exists('itemImageUrl')) {
+    function itemImageUrl($image): string
+    {
+        $image = trim((string)($image ?? ''));
 
-if (!$item) die("<div class='container mt-5'><h3 class='text-danger'>Món đồ không tồn tại!</h3></div>");
+        if ($image === '') {
+            return 'https://placehold.co/600x450/eaf5ea/198754?text=Song+Xanh';
+        }
+
+        if (preg_match('~^https?://~i', $image)) {
+            return $image;
+        }
+
+        $image = ltrim(str_replace('\\', '/', $image), '/');
+
+        if (strpos($image, 'public/') === 0) {
+            return $image;
+        }
+
+        if (strpos($image, 'uploads/items/') === 0) {
+            return 'public/' . $image;
+        }
+
+        return 'public/uploads/items/' . basename($image);
+    }
+}
+
+$status = $item['status'] ?? 'pending';
+
+$statusLabels = [
+    'available' => 'Có thể nhận',
+    'pending'   => 'Đang chờ duyệt',
+    'reserved'  => 'Đã có người nhận',
+    'gifted'    => 'Đã trao tặng',
+    'hidden'    => 'Đã ẩn'
+];
+
+$statusClasses = [
+    'available' => 'bg-success',
+    'pending'   => 'bg-warning text-dark',
+    'reserved'  => 'bg-info text-dark',
+    'gifted'    => 'bg-secondary',
+    'hidden'    => 'bg-dark'
+];
+
+$statusLabel = $statusLabels[$status] ?? $status;
+$statusClass = $statusClasses[$status] ?? 'bg-secondary';
+
+$isOwner = $isOwner ?? false;
+$canReceive = $canReceive ?? false;
+$isLoggedIn = !empty($_SESSION['user_id']);
 ?>
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <title><?= htmlspecialchars($item['title']) ?></title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body>
-<div class="container mt-5">
-    <a href="index.php" class="btn btn-outline-success mb-3">&larr; Quay lại trang chủ</a>
-    <div class="card border-success shadow-sm">
+
+<div class="container py-4 py-md-5">
+
+    <div class="mb-4">
+        <a href="index.php"
+           class="text-decoration-none text-success">
+            <i class="bi bi-arrow-left"></i>
+            Quay lại trang chủ
+        </a>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+
         <div class="row g-0">
-            <div class="col-md-6">
-                <img src="uploads/<?= htmlspecialchars($item['image_url']) ?>" class="img-fluid rounded-start" style="width: 100%; height: 100%; object-fit: cover;">
+
+            <!-- Hình ảnh sản phẩm -->
+            <div class="col-md-6 bg-light">
+
+                <img
+                    src="<?= e(itemImageUrl($item['image_url'] ?? '')) ?>"
+                    alt="<?= e($item['title'] ?? '') ?>"
+                    class="w-100"
+                    style="height: 440px; object-fit: contain;"
+                    onerror="this.onerror=null;this.src='https://placehold.co/600x450/eaf5ea/198754?text=Song+Xanh';"
+                >
+
             </div>
+
+            <!-- Thông tin sản phẩm -->
             <div class="col-md-6">
-                <div class="card-body">
-                    <h2 class="text-success fw-bold"><?= htmlspecialchars($item['title']) ?></h2>
-                    <span class="badge bg-success fs-6 mb-3"><?= htmlspecialchars($item['category_name']) ?></span>
-                    
-                    <ul class="list-group list-group-flush mb-3">
-                        <li class="list-group-item px-0"><strong>Tình trạng:</strong> <span class="text-success"><?= htmlspecialchars($item['condition_note']) ?></span></li>
-                        <li class="list-group-item px-0"><strong>Địa điểm nhận:</strong> <?= htmlspecialchars($item['pickup_location']) ?></li>
-                        <li class="list-group-item px-0"><strong>Người tặng:</strong> <?= htmlspecialchars($item['full_name']) ?></li>
-                    </ul>
-                    
-                    <h5 class="text-success">Mô tả:</h5>
-                    <p class="card-text"><?= nl2br(htmlspecialchars($item['description'])) ?></p>
-                    
-                    <?php if ($item['status'] === 'available' && (!isset($_SESSION['user_id']) || $item['user_id'] != $_SESSION['user_id'])): ?>
-                        <form action="request-item.php" method="POST" class="mt-4 bg-light p-3 border border-success rounded">
-                            <input type="hidden" name="item_id" value="<?= $item['id'] ?>">
-                            <div class="mb-3">
-                                <label class="form-label text-success fw-bold">Lời nhắn xin đồ:</label>
-                                <textarea name="message" class="form-control border-success" rows="2" placeholder="Ví dụ: Em là sinh viên, anh/chị cho em xin cuốn sách này nhé..." required></textarea>
+
+                <div class="card-body p-4 p-lg-5">
+
+                    <div class="d-flex flex-wrap gap-2 mb-3">
+
+                        <span class="badge bg-success-subtle text-success">
+                            <?= e($item['category_name'] ?? 'Chưa phân loại') ?>
+                        </span>
+
+                        <span class="badge <?= e($statusClass) ?>">
+                            <?= e($statusLabel) ?>
+                        </span>
+
+                    </div>
+
+                    <h2 class="fw-bold mb-4">
+                        <?= e($item['title'] ?? '') ?>
+                    </h2>
+
+                    <div class="mb-3">
+                        <div class="text-muted small mb-1">
+                            <i class="bi bi-patch-check me-1"></i>
+                            Tình trạng món đồ
+                        </div>
+
+                        <div class="fw-semibold">
+                            <?= e($item['condition_note'] ?? 'Chưa cập nhật') ?>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="text-muted small mb-1">
+                            <i class="bi bi-geo-alt me-1"></i>
+                            Địa điểm nhận
+                        </div>
+
+                        <div class="fw-semibold">
+                            <?= e($item['pickup_location'] ?? 'Chưa cập nhật') ?>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="text-muted small mb-1">
+                            <i class="bi bi-person-circle me-1"></i>
+                            Người chia sẻ
+                        </div>
+
+                        <div class="fw-semibold">
+                            <?= e($item['owner_name'] ?? 'Thành viên') ?>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="text-muted small mb-1">
+                            <i class="bi bi-calendar3 me-1"></i>
+                            Ngày đăng
+                        </div>
+
+                        <div>
+                            <?php
+                            $createdAt = $item['created_at'] ?? null;
+                            echo $createdAt
+                                ? e(date('d/m/Y H:i', strtotime($createdAt)))
+                                : 'Chưa cập nhật';
+                            ?>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <!-- Khu vực hành động -->
+                    <div class="mt-4">
+
+                        <?php if ($isOwner): ?>
+
+                            <div class="alert alert-info mb-0">
+                                <i class="bi bi-info-circle me-1"></i>
+                                Đây là món đồ bạn đã đăng chia sẻ.
                             </div>
-                            <button type="submit" class="btn btn-success w-100 fw-bold">Gửi yêu cầu xin nhận đồ</button>
-                        </form>
-                    <?php elseif ($item['status'] === 'gifted'): ?>
-                        <div class="alert alert-secondary mt-3">Món đồ này đã được tặng cho người khác.</div>
-                    <?php else: ?>
-                        <div class="alert alert-success mt-3">Đây là món đồ của bạn.</div>
-                    <?php endif; ?>
+
+                        <?php elseif ($canReceive): ?>
+
+                            <button
+                                type="button"
+                                class="btn btn-success btn-lg w-100"
+                                disabled
+                            >
+                                <i class="bi bi-heart me-2"></i>
+                                Đăng ký nhận đồ
+                            </button>
+
+                            <p class="small text-muted mt-2 mb-0">
+                                Chức năng đăng ký nhận sẽ được kích hoạt
+                                sau khi tích hợp Module 3.
+                            </p>
+
+                        <?php elseif (!$isLoggedIn && $status === 'available'): ?>
+
+                            <a
+                                href="index.php?controller=Auth&action=login"
+                                class="btn btn-success btn-lg w-100"
+                            >
+                                <i class="bi bi-box-arrow-in-right me-2"></i>
+                                Đăng nhập để nhận đồ
+                            </a>
+
+                        <?php else: ?>
+
+                            <div class="alert alert-secondary mb-0">
+                                Món đồ hiện không thể đăng ký nhận.
+                            </div>
+
+                        <?php endif; ?>
+
+                    </div>
+
                 </div>
             </div>
+
         </div>
     </div>
+
+    <!-- Mô tả chi tiết -->
+    <div class="card border-0 shadow-sm rounded-4 mt-4">
+
+        <div class="card-body p-4">
+
+            <h4 class="fw-bold mb-3">
+                <i class="bi bi-card-text text-success me-2"></i>
+                Mô tả chi tiết
+            </h4>
+
+            <div style="white-space: pre-line; line-height: 1.8;">
+                <?= e($item['description'] ?? 'Chưa có mô tả.') ?>
+            </div>
+
+        </div>
+    </div>
+
 </div>
-</body>
-</html>

@@ -162,18 +162,51 @@ class ItemController extends Controller
 
     // Chi tiết món đồ
     public function detail(): void
-    {
-        $id = (int)($_GET['id'] ?? 0);
-        $item = $this->itemModel->getItemById($id);
+{
+    $id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
 
-        if (!$item) {
-            http_response_code(404);
-            echo 'Không tìm thấy món đồ.';
-            return;
-        }
-
-        $this->view('items/item_detail', [
-            'item' => $item
-        ]);
+    if (!$id || $id <= 0) {
+        http_response_code(404);
+        echo 'Món đồ không hợp lệ.';
+        return;
     }
+
+    $item = $this->itemModel->getItemById($id);
+
+    if (!$item) {
+        http_response_code(404);
+        echo 'Không tìm thấy món đồ.';
+        return;
+    }
+
+    $userId = (int)($_SESSION['user_id'] ?? 0);
+    $isOwner = $userId > 0
+        && $userId === (int)$item['user_id'];
+
+    $isAdmin = ($_SESSION['role'] ?? '') === 'admin';
+    $status = $item['status'] ?? '';
+
+    // Chỉ công khai sản phẩm đang available hoặc đã tặng.
+    // Chủ bài đăng và Admin được xem các trạng thái còn lại.
+    if (
+        !in_array($status, ['available', 'gifted'], true)
+        && !$isOwner
+        && !$isAdmin
+    ) {
+        http_response_code(404);
+        echo 'Không tìm thấy món đồ.';
+        return;
+    }
+
+    $canReceive = $status === 'available'
+        && $userId > 0
+        && !$isOwner
+        && !$isAdmin;
+
+    $this->view('items/item_detail', [
+        'item' => $item,
+        'isOwner' => $isOwner,
+        'canReceive' => $canReceive
+    ]);
+}
 }

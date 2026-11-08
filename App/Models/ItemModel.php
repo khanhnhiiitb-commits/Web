@@ -102,24 +102,24 @@ public function searchItems(
 
     // Lấy chi tiết một món đồ
     public function getItemById(int $id): ?array
-    {
-        $sql = "SELECT
-                    i.*,
-                    c.name AS category_name,
-                    u.full_name AS owner_name
-                FROM items i
-                INNER JOIN categories c ON i.category_id = c.id
-                INNER JOIN users u ON i.user_id = u.id
-                WHERE i.id = :id AND i.status = 'available'
-                LIMIT 1";
+{
+    $sql = "SELECT
+                i.*,
+                c.name AS category_name,
+                u.full_name AS owner_name
+            FROM items i
+            INNER JOIN categories c ON i.category_id = c.id
+            INNER JOIN users u ON i.user_id = u.id
+            WHERE i.id = :id
+            LIMIT 1";
 
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute([':id' => $id]);
+    $stmt = $this->db->prepare($sql);
+    $stmt->execute([':id' => $id]);
 
-        $item = $stmt->fetch(PDO::FETCH_ASSOC);
+    $item = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        return $item ?: null;
-    }
+    return $item ?: null;
+}
 
     // Lấy danh sách món đồ của người đang đăng nhập
     public function getMyItems(int $userId): array

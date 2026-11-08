@@ -7,23 +7,19 @@ class Controller
     public function model($model)
     {
         $file = __DIR__ . '/../Models/' . $model . '.php';
-
         if (!file_exists($file)) {
             die("Không tìm thấy Model: " . $file);
         }
-
         require_once $file;
-
         $class = 'App\\Models\\' . $model;
-
         return new $class();
     }
 
-    // Gọi View thông qua layout chung (Đã cập nhật để hỗ trợ Admin Layout)
+    // Gọi View thông qua layout chung (ĐÃ SỬA ĐỂ HỖ TRỢ ADMIN)
     public function view($view, $data = [], $layout = 'main')
     {
         if (is_array($data)) {
-            extract($data);
+            extract($data); // Giải nén biến $data, lúc này $data['totalUsers'] sẽ thành biến $totalUsers
         }
 
         $viewPath = __DIR__ . '/../Views/' . $view . '.php';
@@ -33,11 +29,12 @@ class Controller
             die("Không tìm thấy View: " . $viewPath);
         }
 
+        // Lấy nội dung View (Ví dụ nội dung file index.php)
         ob_start();
         require $viewPath;
         $content = ob_get_clean();
 
-        // Nhúng nội dung View vào Layout (Nhúng vào admin_layout.php)
+        // Nhúng nội dung View vào Layout (Ví dụ: admin_layout.php)
         if (file_exists($layoutPath)) {
             require $layoutPath;
         } else {
@@ -48,7 +45,7 @@ class Controller
     protected function requireLogin(): void
     {
         if (empty($_SESSION['user_id'])) {
-            header('Location: ' . BASE_URL . 'auth/login');
+            header('Location: index.php?controller=Auth&action=login');
             exit;
         }
     }

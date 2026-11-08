@@ -117,4 +117,5 @@ class UserModel extends Model
             ':id' => $id
         ]);
     }
+    
 }

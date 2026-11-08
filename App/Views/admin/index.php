@@ -12,8 +12,7 @@
                 <button type="button" class="btn btn-white text-secondary bg-white border border-end-0">7 ngày qua</button>
                 <button type="button" class="btn btn-success fw-bold">Tháng này</button>
             </div>
-            <button class="btn btn-success shadow-sm fw-bold"><i class="bi bi-file-earmark-excel"></i> Xuất báo cáo Excel</button>
-        </div>
+<a href="index.php?controller=Admin&action=exportExcel" class="btn btn-success shadow-sm fw-bold"><i class="bi bi-file-earmark-excel"></i> Xuất báo cáo Excel</a>        </div>
     </div>
 
     <!-- 4 Thẻ Thống Kê (Dashboard Cards) -->
@@ -73,8 +72,7 @@
                     <h3 class="display-6 fw-bold text-dark mb-3"><?php echo number_format($pendingRequests ?? 0); ?></h3>
                     <div class="d-flex justify-content-between align-items-center">
                         <span class="text-danger small fw-semibold">Cần xử lý ngay</span>
-                        <a href="<?= BASE_URL ?>admin/items" class="btn btn-sm btn-light text-primary fw-semibold rounded-pill px-3">Duyệt ngay →</a>
-                    </div>
+<a href="index.php?controller=Admin&action=products" class="btn btn-sm btn-light text-primary fw-semibold rounded-pill px-3">Duyệt ngay →</a>                    </div>
                     <div class="position-absolute top-0 end-0 mt-4 me-4 bg-danger bg-opacity-10 rounded-circle p-2">
                         <i class="bi bi-clipboard2-x text-danger fs-4"></i>
                     </div>
@@ -134,7 +132,7 @@
                             <h5 class="fw-bold mb-1">Giao dịch & Trao đổi gần đây</h5>
                             <p class="text-secondary small mb-0">Các hoạt động trao tặng và chia sẻ vòng tuần hoàn mới hoàn tất</p>
                         </div>
-                        <a href="<?= BASE_URL ?>admin/transactions" class="text-decoration-none fw-semibold text-primary">Xem tất cả giao dịch ></a>
+                        <a href="<?= BASE_URL ?>index.php?controller=Admin&action=transactions" class="text-decoration-none fw-semibold text-primary">Xem tất cả giao dịch ></a>
                     </div>
                     
                     <div class="table-responsive">
@@ -213,21 +211,31 @@
                 <div class="card-body p-4">
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h5 class="fw-bold mb-0">Chờ duyệt <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill fs-6"><?php echo $pendingRequests ?? 0; ?> mới</span></h5>
-                        <a href="<?= BASE_URL ?>admin/items" class="text-decoration-none fw-semibold text-primary small">Duyệt tất cả (<?php echo $pendingRequests ?? 0; ?>)</a>
+                        <a href="<?= BASE_URL ?>index.php?controller=Admin&action=products" class="text-decoration-none fw-semibold text-primary small">Duyệt tất cả (<?php echo $pendingRequests ?? 0; ?>)</a>
                     </div>
                     
-                    <?php for ($i=0; $i<3; $i++) { ?>
+                    <?php 
+                    if (!empty($recentPendingPosts)) { 
+                        foreach ($recentPendingPosts as $post) { 
+                    ?>
                     <div class="d-flex align-items-start mb-3 p-3 bg-light rounded-3">
                         <div class="bg-white rounded p-3 me-3 border"><i class="bi bi-image text-secondary fs-4"></i></div>
                         <div class="flex-grow-1">
-                            <h6 class="fw-bold mb-1">Món đồ cần duyệt #<?php echo $i+1; ?> <span class="badge bg-white text-secondary fw-normal border ms-1">Vừa xong</span></h6>
-                            <p class="text-secondary small mb-2">Người đăng: User_<?php echo $i; ?></p>
+                            <h6 class="fw-bold mb-1"><?php echo htmlspecialchars($post['title'] ?? 'Chưa có tên'); ?> <span class="badge bg-white text-secondary fw-normal border ms-1">Mới</span></h6>
+                            <p class="text-secondary small mb-2">Người đăng: <?php echo htmlspecialchars($post['user_name'] ?? 'Ẩn danh'); ?></p>
                             <div class="d-flex gap-2">
-                                <button class="btn btn-sm btn-white border fw-semibold text-secondary w-50">Xem chi tiết</button>
-                                <button class="btn btn-sm btn-success fw-semibold w-50"><i class="bi bi-check2"></i> Duyệt nhanh</button>
+                                <form action="<?= BASE_URL ?>index.php?controller=Admin&action=approveProduct" method="POST" class="w-100 m-0">
+                                    <input type="hidden" name="id" value="<?php echo $post['id']; ?>">
+                                    <button type="submit" class="btn btn-sm btn-success fw-semibold w-100"><i class="bi bi-check2"></i> Duyệt nhanh</button>
+                                </form>
                             </div>
                         </div>
                     </div>
+                    <?php 
+                        } 
+                    } else { 
+                    ?>
+                        <p class="text-center text-muted small py-3">Không có bài đăng nào đang chờ duyệt.</p>
                     <?php } ?>
                 </div>
             </div>

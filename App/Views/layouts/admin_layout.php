@@ -22,11 +22,11 @@
             <div class="fs-4 fw-bold text-success mb-4 text-center">
                 🌱 Sống Xanh Admin
             </div>
-            <nav class="nav flex-column">
-                <a class="nav-link px-3 py-2" href="<?= BASE_URL ?>admin/dashboard"><i class="bi bi-graph-up pe-2"></i>Tổng quan</a>
-                <a class="nav-link px-3 py-2" href="<?= BASE_URL ?>admin/items"><i class="bi bi-box-seam pe-2"></i>Quản lý bài đăng</a>
-                <a class="nav-link px-3 py-2" href="<?= BASE_URL ?>admin/users"><i class="bi bi-people pe-2"></i>Quản lý tài khoản</a>
-                <a class="nav-link px-3 py-2" href="<?= BASE_URL ?>admin/transactions"><i class="bi bi-arrow-left-right pe-2"></i>Lịch sử giao dịch</a>
+       <nav class="nav flex-column">
+                <a class="nav-link px-3 py-2" href="index.php?controller=Admin&action=dashboard"><i class="bi bi-graph-up pe-2"></i>Tổng quan</a>
+                <a class="nav-link px-3 py-2" href="index.php?controller=Admin&action=products"><i class="bi bi-box-seam pe-2"></i>Quản lý bài đăng</a>
+                <a class="nav-link px-3 py-2" href="index.php?controller=Admin&action=users"><i class="bi bi-people pe-2"></i>Quản lý tài khoản</a>
+                <a class="nav-link px-3 py-2" href="index.php?controller=Admin&action=transactions"><i class="bi bi-arrow-left-right pe-2"></i>Lịch sử giao dịch</a>
             </nav>
         </aside>
 

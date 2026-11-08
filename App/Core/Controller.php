@@ -16,10 +16,10 @@ class Controller
     }
 
     // Gọi View thông qua layout chung (ĐÃ SỬA ĐỂ HỖ TRỢ ADMIN)
-    public function view($view, $data = [], $layout = 'main')
+   public function view($view, $data = [], $layout = 'main')
     {
         if (is_array($data)) {
-            extract($data); // Giải nén biến $data, lúc này $data['totalUsers'] sẽ thành biến $totalUsers
+            extract($data);
         }
 
         $viewPath = __DIR__ . '/../Views/' . $view . '.php';
@@ -29,12 +29,11 @@ class Controller
             die("Không tìm thấy View: " . $viewPath);
         }
 
-        // Lấy nội dung View (Ví dụ nội dung file index.php)
+        // Lấy nội dung View (Nội dung HTML của trang tổng quan)
         ob_start();
         require $viewPath;
         $content = ob_get_clean();
 
-        // Nhúng nội dung View vào Layout (Ví dụ: admin_layout.php)
         if (file_exists($layoutPath)) {
             require $layoutPath;
         } else {

@@ -74,71 +74,51 @@ class RequestModel
             $this->db->beginTransaction();
 
             // Chỉ cho phép chủ đồ duyệt yêu cầu
-            $sql = "SELECT ir.item_id
-                    FROM item_requests ir
-                    JOIN items i ON ir.item_id = i.id
-                    WHERE ir.id = :request_id
-                      AND i.user_id = :user_id
-                      AND ir.status = 'pending'
-                      AND i.status = 'available'
-                    FOR UPDATE";
-
-            $stmt = $this->db->prepare($sql);
-            $stmt->execute([
-                'request_id' => $requestId,
-                'user_id' => $userId
-            ]);
-
-            $request = $stmt->fetch();
-
-            if (!$request) {
+            $stmt = $this->db->prepare("SELECT item_id FROM item_requests WHERE id = :id");
+            $stmt->execute([':id' => $requestId]);
+            $itemId = (int) $stmt->fetchColumn();
+            if ($itemId <= 0) {
                 $this->db->rollBack();
                 return false;
             }
 
-            $itemId = $request['item_id'];
+            $stmt = $this->db->prepare(
+                "SELECT id FROM items WHERE id = :item_id AND user_id = :user_id AND status = 'available' FOR UPDATE"
+            );
+            $stmt->execute([':item_id' => $itemId, ':user_id' => $userId]);
+            if (!$stmt->fetch()) {
+                $this->db->rollBack();
+                return false;
+            }
 
-            // Chấp nhận yêu cầu được chọn
-            $sql = "UPDATE item_requests
-                    SET status = 'accepted'
-                    WHERE id = :request_id";
+            $stmt = $this->db->prepare(
+                "UPDATE item_requests SET status = 'accepted'
+                 WHERE id = :request_id AND item_id = :item_id AND status = 'pending'"
+            );
+            $stmt->execute([':request_id' => $requestId, ':item_id' => $itemId]);
+            if ($stmt->rowCount() !== 1) {
+                $this->db->rollBack();
+                return false;
+            }
 
-            $stmt = $this->db->prepare($sql);
-            $stmt->execute(['request_id' => $requestId]);
-
-            // Từ chối những yêu cầu đang chờ khác của cùng món đồ
-            $sql = "UPDATE item_requests
-                    SET status = 'rejected'
-                    WHERE item_id = :item_id
-                      AND id != :request_id
-                      AND status = 'pending'";
-
-            $stmt = $this->db->prepare($sql);
-            $stmt->execute([
-                'item_id' => $itemId,
-                'request_id' => $requestId
-            ]);
-
-            // Đánh dấu món đồ đã được tặng
-            $sql = "UPDATE items
-                    SET status = 'gifted'
-                    WHERE id = :item_id
-                      AND user_id = :user_id";
-
-            $stmt = $this->db->prepare($sql);
-            $stmt->execute([
-                'item_id' => $itemId,
-                'user_id' => $userId
-            ]);
+            $stmt = $this->db->prepare(
+                "UPDATE item_requests SET status = 'rejected'
+                 WHERE item_id = :item_id AND id <> :request_id AND status = 'pending'"
+            );
+            $stmt->execute([':item_id' => $itemId, ':request_id' => $requestId]);
+            $stmt = $this->db->prepare(
+                "UPDATE items SET status = 'reserved' WHERE id = :item_id AND status = 'available'"
+            );
+            $stmt->execute([':item_id' => $itemId]);
+            if ($stmt->rowCount() !== 1) {
+                $this->db->rollBack();
+                return false;
+            }
 
             $this->db->commit();
             return true;
-
         } catch (Throwable $e) {
-            if ($this->db->inTransaction()) {
-                $this->db->rollBack();
-            }
-
+            if ($this->db->inTransaction()) $this->db->rollBack();
             error_log($e->getMessage());
             return false;
         }
@@ -250,53 +230,70 @@ class RequestModel
         try {
             $this->db->beginTransaction();
 
-            $stmt = $this->db->prepare(
-                "SELECT ir.requester_id, ir.giver_confirmed_at, ir.receiver_confirmed_at,
-                        i.user_id AS owner_id
-                 FROM item_requests ir
-                 JOIN items i ON ir.item_id = i.id
-                 WHERE ir.id = :id AND ir.status = 'accepted'
-                 FOR UPDATE"
-            );
+            // Đọc item_id rồi khóa items trước, cùng thứ tự với acceptRequest().
+            $stmt = $this->db->prepare("SELECT item_id FROM item_requests WHERE id = :id");
             $stmt->execute([':id' => $requestId]);
-            $row = $stmt->fetch();
-
-            if (!$row) {
+            $itemId = (int) $stmt->fetchColumn();
+            if ($itemId <= 0) {
                 $this->db->rollBack();
                 return false;
             }
 
-            $isGiver    = (int)$row['owner_id'] === $userId;
-            $isReceiver = (int)$row['requester_id'] === $userId;
+            $stmt = $this->db->prepare("SELECT user_id, status FROM items WHERE id = :id FOR UPDATE");
+            $stmt->execute([':id' => $itemId]);
+            $item = $stmt->fetch(PDO::FETCH_ASSOC);
+            if (!$item || $item['status'] !== 'reserved') {
+                $this->db->rollBack();
+                return false;
+            }
 
+            $stmt = $this->db->prepare(
+                "SELECT requester_id, status, giver_confirmed_at, receiver_confirmed_at
+                 FROM item_requests WHERE id = :id AND item_id = :item_id FOR UPDATE"
+            );
+            $stmt->execute([':id' => $requestId, ':item_id' => $itemId]);
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            if (!$row || $row['status'] !== 'awaiting_confirmation') {
+                $this->db->rollBack();
+                return false;
+            }
+
+            $isGiver = (int) $item['user_id'] === $userId;
+            $isReceiver = (int) $row['requester_id'] === $userId;
             if (!$isGiver && !$isReceiver) {
                 $this->db->rollBack();
                 return false;
             }
 
-            // Tên cột lấy từ 2 giá trị cố định, không lấy từ dữ liệu người dùng
             $column = $isGiver ? 'giver_confirmed_at' : 'receiver_confirmed_at';
+            if ($row[$column] !== null) {
+                $this->db->rollBack();
+                return false;
+            }
+            $stmt = $this->db->prepare("UPDATE item_requests SET {$column} = NOW() WHERE id = :id");
+            $stmt->execute([':id' => $requestId]);
 
-            $this->db->prepare(
-                "UPDATE item_requests SET $column = COALESCE($column, NOW()) WHERE id = :id"
-            )->execute([':id' => $requestId]);
-
-            $giverDone    = $isGiver    || $row['giver_confirmed_at'] !== null;
+            $giverDone = $isGiver || $row['giver_confirmed_at'] !== null;
             $receiverDone = $isReceiver || $row['receiver_confirmed_at'] !== null;
-
             if ($giverDone && $receiverDone) {
-                $this->db->prepare(
-                    "UPDATE item_requests SET status = 'completed' WHERE id = :id"
-                )->execute([':id' => $requestId]);
+                $stmt = $this->db->prepare(
+                    "UPDATE item_requests SET status = 'completed', completed_at = NOW() WHERE id = :id"
+                );
+                $stmt->execute([':id' => $requestId]);
+                $stmt = $this->db->prepare(
+                    "UPDATE items SET status = 'gifted' WHERE id = :id AND status = 'reserved'"
+                );
+                $stmt->execute([':id' => $itemId]);
+                if ($stmt->rowCount() !== 1) {
+                    $this->db->rollBack();
+                    return false;
+                }
             }
 
             $this->db->commit();
             return true;
-
         } catch (Throwable $e) {
-            if ($this->db->inTransaction()) {
-                $this->db->rollBack();
-            }
+            if ($this->db->inTransaction()) $this->db->rollBack();
             error_log($e->getMessage());
             return false;
         }

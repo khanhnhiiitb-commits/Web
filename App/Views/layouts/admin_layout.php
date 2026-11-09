@@ -27,6 +27,11 @@
                 <a class="nav-link px-3 py-2" href="index.php?controller=Admin&action=products"><i class="bi bi-box-seam pe-2"></i>Quản lý bài đăng</a>
                 <a class="nav-link px-3 py-2" href="index.php?controller=Admin&action=users"><i class="bi bi-people pe-2"></i>Quản lý tài khoản</a>
                 <a class="nav-link px-3 py-2" href="index.php?controller=Admin&action=transactions"><i class="bi bi-arrow-left-right pe-2"></i>Lịch sử giao dịch</a>
+         
+                <hr class="text-secondary my-2 mx-3">
+                <a class="nav-link px-3 py-2 text-danger fw-bold" href="index.php?controller=Auth&action=logout" onclick="return confirm('Bạn có muốn đăng xuất không?');">
+                    <i class="bi bi-box-arrow-right pe-2"></i>Đăng xuất
+                </a>
             </nav>
         </aside>
 

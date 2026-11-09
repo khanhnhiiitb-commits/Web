@@ -12,49 +12,44 @@
                     <th class="py-3 px-4 text-center">Thao tác</th>
                 </tr>
             </thead>
-            <tbody>
-                <?php 
-                if (isset($products) && is_array($products) && count($products) > 0) { 
-                    foreach ($products as $item) { 
-                ?>
-                <tr>
-                    <td class="py-3 px-4 fw-bold"><?php echo htmlspecialchars($item['title'] ?? 'Chưa có tên'); ?></td>
-                    <td class="py-3 px-4"><?php echo htmlspecialchars($item['user'] ?? 'Ẩn danh'); ?></td>
-                    <td class="py-3 px-4"><?php echo htmlspecialchars($item['category'] ?? 'Khác'); ?></td>
-                    <td class="py-3 px-4">
-                        <?php if (($item['status'] ?? '') === 'pending') { ?>
-                            <span class="badge bg-warning text-dark px-3 py-2 rounded-pill">Chờ duyệt</span>
-                        <?php } else { ?>
-                            <span class="badge bg-success px-3 py-2 rounded-pill">Đã duyệt</span>
-                        <?php } ?>
-                    </td>
-                    <td class="py-3 px-4 text-center">
-                        <div class="d-flex justify-content-center gap-2">
-                            <?php if (($item['status'] ?? '') === 'pending') { ?>
-                                <!-- Nút Duyệt bài -->
-                              <!-- Nút Duyệt bài -->
-                                <form action="<?= BASE_URL ?>index.php?controller=Admin&action=approveProduct" method="POST" class="m-0">
-                                    <input type="hidden" name="id" value="<?php echo $item['id']; ?>">
-                                    <button type="submit" class="btn btn-success btn-sm px-3">Duyệt</button>
-                                </form>
-                            <?php } ?>
-                            
-                            <!-- Nút Xóa bài -->
-                         <!-- Nút Xóa bài -->
-                            <form action="<?= BASE_URL ?>index.php?controller=Admin&action=deleteProduct" method="POST" class="m-0">
-                                <input type="hidden" name="id" value="<?php echo $item['id']; ?>">
-                                <button type="submit" class="btn btn-danger btn-sm px-3" onclick="return confirm('Bạn có chắc chắn muốn xóa bài đăng này không?');">Xóa</button>
-                            </form>
-                        </div>
-                    </td>
-                </tr>
-                <?php 
-                    } 
-                } else { 
-                ?>
-                <tr><td colspan="5" class="py-4 text-center text-muted">Không có bài đăng nào để hiển thị.</td></tr>
-                <?php } ?>
-            </tbody>
+           <tbody>
+                                <?php if (!empty($products)) {
+                                    foreach ($products as $post) { ?>
+                                        <tr>
+                                            <td class="py-3 px-4 fw-bold"><?php echo htmlspecialchars($post['title'] ?? 'Không có tiêu đề'); ?></td>
+                                            <td class="py-3 px-4"><?php echo htmlspecialchars($post['user_name'] ?? 'Ẩn danh'); ?></td>
+                                            <td class="py-3 px-4"><?php echo htmlspecialchars($post['category'] ?? 'Chưa phân loại'); ?></td>
+                                            <td class="py-3 px-4">
+                                                <?php if (($post['status'] ?? '') === 'available') { ?>
+                                                    <span class="badge bg-success px-3 py-2 rounded-pill">Đã duyệt</span>
+                                                <?php } else { ?>
+                                                    <span class="badge bg-warning text-dark px-3 py-2 rounded-pill">Chờ duyệt</span>
+                                                <?php } ?>
+                                            </td>
+                                            <td class="py-3 px-4 text-center">
+                                                <div class="d-flex justify-content-center gap-2">
+                                                    <?php if (($post['status'] ?? '') !== 'available') { ?>
+                                                        <!-- Nút Duyệt -->
+                                                        <form action="?controller=Admin&action=approveProduct" method="POST" class="m-0">
+                                                            <input type="hidden" name="id" value="<?php echo $post['id']; ?>">
+                                                            <button type="submit" class="btn btn-sm btn-outline-success">Duyệt</button>
+                                                        </form>
+                                                    <?php } ?>
+                                                    <!-- Nút Xóa -->
+                                                    <form action="?controller=Admin&action=deleteProduct" method="POST" class="m-0" onsubmit="return confirm('Bạn có chắc chắn muốn xóa bài đăng này không?');">
+                                                        <input type="hidden" name="id" value="<?php echo $post['id']; ?>">
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger">Xóa</button>
+                                                    </form>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    <?php }
+                                } else { ?>
+                                    <tr>
+                                        <td colspan="5" class="py-4 text-center text-muted">Không có bài đăng nào để hiển thị.</td>
+                                    </tr>
+                                <?php } ?>
+                            </tbody>
         </table>
     </div>
 </div>

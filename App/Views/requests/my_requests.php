@@ -54,6 +54,10 @@ $title = 'Quản lý người xin đồ - Give & Take';
                             </td>
                             <td class="text-center">
                                 <div class="d-flex justify-content-center gap-2">
+                                    <a class="btn btn-sm btn-outline-success" title="Nhắn tin"
+                                       href="index.php?controller=Message&action=chat&id=<?= (int)$req['request_id'] ?>">
+                                        <i class="bi bi-chat-dots"></i> Chat
+                                    </a>
                                     <form action="index.php?controller=request&action=accept&id=<?= $req['request_id'] ?>" method="POST" class="d-inline">
                                         <button type="submit" class="btn btn-success btn-sm fw-semibold px-3" onclick="return confirm('Bạn chắc chắn muốn đồng ý tặng món đồ này cho người dùng này chứ?');">
                                             <i class="fa-solid fa-check me-1"></i> Đồng ý

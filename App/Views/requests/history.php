@@ -13,7 +13,12 @@ $given    = is_array($given ?? null) ? $given : [];
 // [class badge, chữ hiển thị]
 $statusMap = [
     'pending'   => ['bg-warning text-dark', 'Đang chờ duyệt'],
-    'accepted'  => ['bg-primary',           'Đã xác nhận, chờ trao nhận'],
+    'accepted'  => ['bg-primary',           'Đã chấp nhận, chờ sắp xếp giao nhận'],
+    // [BƯỚC 1 - MỚI] Trạng thái giao nhận
+    'arranged' => ['bg-info text-dark', 'Đã sắp xếp giao nhận'],
+    'in_progress' => ['bg-info text-dark', 'Đang giao nhận'],
+    'awaiting_confirmation' => ['bg-warning text-dark', 'Chờ hai bên xác nhận'],
+    'disputed' => ['bg-danger', 'Đang tranh chấp'],
     'completed' => ['bg-success',           'Hoàn thành'],
     'rejected'  => ['bg-danger',            'Bị từ chối'],
     'cancelled' => ['bg-secondary',         'Đã hủy'],
@@ -83,9 +88,19 @@ $actionForm = function (string $action, int $id, string $label, string $btnClass
                                     <td class="small text-muted"><?= e(date('d/m/Y H:i', strtotime($r['created_at']))) ?></td>
                                     <td><span class="badge <?= $cls ?>"><?= $txt ?></span></td>
                                     <td class="text-end">
+                                        <a class="btn btn-sm btn-outline-success me-1 mb-1"
+                                           href="index.php?controller=Message&action=chat&id=<?= (int)$r['request_id'] ?>">
+                                            <i class="bi bi-chat-dots"></i> Chat
+                                        </a>
+                                        <?php if (in_array($r['request_status'], ['accepted', 'arranged', 'in_progress', 'awaiting_confirmation'], true)): ?>
+                                            <a class="btn btn-sm btn-outline-primary me-1 mb-1"
+                                               href="index.php?controller=Delivery&amp;action=tracking&amp;id=<?= (int)$r['request_id'] ?>">
+                                                <i class="bi bi-box-seam"></i> Xem giao nhận
+                                            </a>
+                                        <?php endif; ?>
                                         <?php if ($r['request_status'] === 'pending'): ?>
                                             <?php $actionForm('cancel', (int)$r['request_id'], 'Hủy yêu cầu', 'btn-outline-danger', 'Bạn muốn hủy yêu cầu nhận món đồ này?'); ?>
-                                        <?php elseif ($r['request_status'] === 'accepted'): ?>
+                                        <?php elseif ($r['request_status'] === 'awaiting_confirmation'): // [BƯỚC 3A - SỬA] Chỉ xác nhận sau giai đoạn giao nhận ?>
                                             <?php if (empty($r['receiver_confirmed_at'])): ?>
                                                 <?php $actionForm('confirmHandover', (int)$r['request_id'], 'Đã nhận được đồ', 'btn-success', 'Xác nhận bạn đã nhận được món đồ này?'); ?>
                                             <?php else: ?>
@@ -130,10 +145,21 @@ $actionForm = function (string $action, int $id, string $label, string $btnClass
                                     <td class="small text-muted"><?= e(date('d/m/Y H:i', strtotime($g['created_at']))) ?></td>
                                     <td><span class="badge <?= $cls ?>"><?= $txt ?></span></td>
                                     <td class="text-end">
+                                        <a class="btn btn-sm btn-outline-success me-1 mb-1"
+                                           href="index.php?controller=Message&action=chat&id=<?= (int)$g['request_id'] ?>">
+                                            <i class="bi bi-chat-dots"></i> Chat
+                                        </a>
+                                        <?php if (in_array($g['request_status'], ['accepted', 'arranged', 'in_progress', 'awaiting_confirmation'], true)): ?>
+                                            <a class="btn btn-sm btn-outline-primary me-1 mb-1"
+                                               href="index.php?controller=Delivery&amp;action=tracking&amp;id=<?= (int)$g['request_id'] ?>">
+                                                <i class="bi bi-truck"></i>
+                                                <?= $g['request_status'] === 'accepted' ? 'Thiết lập giao nhận' : 'Theo dõi giao nhận' ?>
+                                            </a>
+                                        <?php endif; ?>
                                         <?php if ($g['request_status'] === 'pending'): ?>
                                             <a href="index.php?controller=request&action=manageMyItems"
                                                class="btn btn-sm btn-outline-success">Duyệt yêu cầu</a>
-                                        <?php elseif ($g['request_status'] === 'accepted'): ?>
+                                        <?php elseif ($g['request_status'] === 'awaiting_confirmation'): // [BƯỚC 3A - SỬA] Không xác nhận ngay sau khi chấp nhận ?>
                                             <?php if (empty($g['giver_confirmed_at'])): ?>
                                                 <?php $actionForm('confirmHandover', (int)$g['request_id'], 'Đã trao đồ', 'btn-success', 'Xác nhận bạn đã trao món đồ này?'); ?>
                                             <?php else: ?>

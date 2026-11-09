@@ -253,12 +253,10 @@ class ItemController extends Controller
             $success = $requestModel->createRequest($itemId, $userId, $message);
 
             if ($success) {
-                // Cập nhật trạng thái sản phẩm sang 'pending' hoặc 'reserved' để tránh đăng ký trùng lặp
-                $this->itemModel->updateStatus($itemId, 'pending');
+             $_SESSION['success'] =
+                 'Đăng ký nhận đồ thành công! Vui lòng chờ chủ đồ phản hồi.';
 
-                $_SESSION['success'] = 'Đăng ký nhận đồ thành công! Hệ thống đã ghi nhận yêu cầu của bạn.';
-                // Chuyển hướng sang trang quản lý đồ nhận (cart / myRequests)
-                header('Location: index.php?controller=Request&action=myRequests');
+                 header('Location: index.php?controller=Request&action=myRequests');
                 exit;
             } else {
                 $_SESSION['error'] = 'Không thể gửi yêu cầu. Vui lòng thử lại sau.';

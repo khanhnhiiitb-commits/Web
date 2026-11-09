@@ -84,6 +84,12 @@ class AuthController extends Controller
             $_SESSION['username'] = $user['full_name'];
             $_SESSION['role'] = $user['role'];
 
+            if ($user['role'] === 'admin') {
+    $this->redirect('index.php?controller=Admin&action=dashboard');
+} else {
+    $this->redirect('index.php?controller=Home&action=index');
+}
+
             // Phân quyền chuyển trang
             $this->goToHome();
 

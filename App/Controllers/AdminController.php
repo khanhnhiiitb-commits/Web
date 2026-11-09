@@ -71,7 +71,7 @@ class AdminController extends Controller
 
     public function users()
     {
-        $this->checkAdmin();
+        $this->requireAdmin();
         $userModel = new UserModel();
         $users = $userModel->getAllUsers();
         $this->view('admin/manage_users', ['users' => $users], 'admin_layout');
@@ -79,7 +79,7 @@ class AdminController extends Controller
 
    public function updateUserStatus()
     {
-        $this->checkAdmin();
+        $this->requireAdmin();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $id = (int) ($_POST['id'] ?? 0);
             $status = filter_var($_POST['status'] ?? null, FILTER_VALIDATE_INT);

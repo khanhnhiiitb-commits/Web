@@ -1,3 +1,7 @@
+<?php
+$isLoggedIn = !empty($_SESSION['user_id']);
+$username = $_SESSION['username'] ?? '';
+?>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -27,7 +31,7 @@
 <body>
 
 <!-- Navbar -->
-<nav class="navbar navbar-expand-lg navbar-dark shadow-sm">
+<nav class="navbar navbar-expand-lg navbar-dark bg-success shadow-sm">
     <div class="container">
 
         <a class="navbar-brand fw-bold" href="index.php">
@@ -136,7 +140,7 @@
 
 <!-- Nội dung từng trang -->
 <main class="container main-content">
-    <?= $content ?>
+    <?= $content ?? '' ?>
 </main>
 
 <!-- Footer -->

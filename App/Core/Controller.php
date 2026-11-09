@@ -1,6 +1,6 @@
 <?php
 namespace App\Core;
-
+use App\Models\UserModel;
 class Controller
 {
     // Gọi Model
@@ -41,12 +41,39 @@ class Controller
         }
     }
 
-    protected function requireLogin(): void
+    // Kiểm tra đăng nhập và trạng thái tài khoản
+    protected function requireLogin()
     {
         if (empty($_SESSION['user_id'])) {
-            header('Location: index.php?controller=Auth&action=login');
-            exit;
+            $this->redirect('index.php?controller=Auth&action=login');
         }
+
+        $userModel = new UserModel();
+        $user = $userModel->findById((int) $_SESSION['user_id']);
+
+        if (!$user || (int) $user['status'] !== 1) {
+            $_SESSION = [];
+            session_regenerate_id(true);
+
+            $this->redirect('index.php?controller=Auth&action=login');
+        }
+
+        // Cập nhật quyền theo dữ liệu hiện tại trong CSDL
+        $_SESSION['role'] = $user['role'];
+        $_SESSION['username'] = $user['full_name'];
+
+        return $user;
+    }
+    // Kiểm tra quyền Admin
+    protected function requireAdmin()
+    {
+        $user = $this->requireLogin();
+
+        if ($user['role'] !== 'admin') {
+            $this->redirect('index.php?controller=Home&action=index');
+        }
+
+        return $user;
     }
 
     // Chuyển hướng

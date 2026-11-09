@@ -172,7 +172,7 @@ $location = trim((string)($location ?? ''));
     </style>
 </head>
 <body>
-    <!-- HEADER -->
+
 
 <!-- BANNER -->
 <section class="hero text-center">

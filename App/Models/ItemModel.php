@@ -230,4 +230,13 @@ public function getItemsPaginated(
         'total' => $totalItems
     ];
 }
+public function updateStatus(int $itemId, string $status): bool
+    {
+        $sql = "UPDATE items SET status = :status WHERE id = :id";
+        $stmt = $this->db->prepare($sql);
+        return $stmt->execute([
+            ':status' => $status,
+            ':id' => $itemId
+        ]);
+    }
 }

@@ -209,4 +209,66 @@ class ItemController extends Controller
         'canReceive' => $canReceive
     ]);
 }
+// Xử lý đăng ký nhận đồ từ trang chi tiết
+    public function requestItem(): void
+    {
+        $this->requireLogin();
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: index.php');
+            exit;
+        }
+
+        $itemId = (int)($_POST['item_id'] ?? 0);
+        $message = trim($_POST['message'] ?? '');
+        $userId = (int)($_SESSION['user_id'] ?? $_SESSION['user']['id'] ?? 0);
+
+        if ($itemId <= 0 || $userId <= 0) {
+            $_SESSION['error'] = 'Yêu cầu không hợp lệ.';
+            header('Location: index.php');
+            exit;
+        }
+
+        // Kiểm tra món đồ có tồn tại và đang available không
+        $item = $this->itemModel->getItemById($itemId);
+        if (!$item || $item['status'] !== 'available') {
+            $_SESSION['error'] = 'Món đồ này hiện không còn khả dụng để nhận.';
+            header('Location: index.php?controller=Item&action=detail&id=' . $itemId);
+            exit;
+        }
+
+        // Không cho phép chủ nhân tự đăng ký nhận đồ của mình
+        if ((int)$item['user_id'] === $userId) {
+            $_SESSION['error'] = 'Bạn không thể đăng ký nhận món đồ do chính mình đăng tải.';
+            header('Location: index.php?controller=Item&action=detail&id=' . $itemId);
+            exit;
+        }
+
+        // Gọi RequestModel để tạo bản ghi yêu cầu và cập nhật trạng thái món đồ
+        try {
+            require_once __DIR__ . '/../Models/RequestModel.php';
+            $requestModel = new \App\Models\RequestModel();
+
+            // Tạo yêu cầu với trạng thái chờ xử lý (pending)
+            $success = $requestModel->createRequest($itemId, $userId, $message);
+
+            if ($success) {
+                // Cập nhật trạng thái sản phẩm sang 'pending' hoặc 'reserved' để tránh đăng ký trùng lặp
+                $this->itemModel->updateStatus($itemId, 'pending');
+
+                $_SESSION['success'] = 'Đăng ký nhận đồ thành công! Hệ thống đã ghi nhận yêu cầu của bạn.';
+                // Chuyển hướng sang trang quản lý đồ nhận (cart / myRequests)
+                header('Location: index.php?controller=Request&action=myRequests');
+                exit;
+            } else {
+                $_SESSION['error'] = 'Không thể gửi yêu cầu. Vui lòng thử lại sau.';
+                header('Location: index.php?controller=Item&action=detail&id=' . $itemId);
+                exit;
+            }
+        } catch (\Throwable $e) {
+            $_SESSION['error'] = 'Có lỗi xảy ra: ' . $e->getMessage();
+            header('Location: index.php?controller=Item&action=detail&id=' . $itemId);
+            exit;
+        }
+    }
 }

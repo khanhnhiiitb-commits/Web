@@ -175,19 +175,24 @@ $isLoggedIn = !empty($_SESSION['user_id']);
 
                         <?php elseif ($canReceive): ?>
 
-                            <button
-                                type="button"
-                                class="btn btn-success btn-lg w-100"
-                                disabled
-                            >
-                                <i class="bi bi-heart me-2"></i>
-                                Đăng ký nhận đồ
-                            </button>
+                            <!-- Form đăng ký nhận đồ -->
+                            <form action="index.php?controller=Item&action=requestItem" method="POST">
+                                <input type="hidden" name="item_id" value="<?= (int) $item['id'] ?>">
+                                
+                                <div class="mb-3">
+                                    <label for="message" class="form-label small fw-semibold text-muted">Lời nhắn gửi chủ món đồ (tùy chọn):</label>
+                                    <textarea class="form-control form-control-sm" id="message" name="message" rows="2" placeholder="Ví dụ: Mình rất cần món đồ này cho học tập, bạn cho mình xin nhé..."></textarea>
+                                </div>
 
-                            <p class="small text-muted mt-2 mb-0">
-                                Chức năng đăng ký nhận sẽ được kích hoạt
-                                sau khi tích hợp Module 3.
-                            </p>
+                                <button
+                                    type="submit"
+                                    class="btn btn-success btn-lg w-100 shadow-sm"
+                                    onclick="return confirm('Bạn chắc chắn muốn đăng ký nhận món đồ này chứ?');"
+                                >
+                                    <i class="bi bi-heart-fill me-2"></i>
+                                    Đăng ký nhận đồ ngay
+                                </button>
+                            </form>
 
                         <?php elseif (!$isLoggedIn && $status === 'available'): ?>
 

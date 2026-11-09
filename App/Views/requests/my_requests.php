@@ -1,6 +1,5 @@
 <?php
 $title = 'Quản lý người xin đồ - Give & Take';
-require_once __DIR__ . '/../layouts/header.php';
 ?>
 
 <div class="container py-4">
@@ -75,4 +74,3 @@ require_once __DIR__ . '/../layouts/header.php';
     <?php endif; ?>
 </div>
 
-<?php require_once __DIR__ . '/../layouts/footer.php'; ?>

@@ -1,41 +1,180 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title><?= $title ?? 'Give & Take - Chia sẻ đồ tái sử dụng' ?></title>
+<?php
+$isLoggedIn = !empty($_SESSION['user_id']);
 
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+$username = $_SESSION['username']
+    ?? $_SESSION['full_name']
+    ?? 'Tài khoản';
+?>
 
-    <!-- Bootstrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-</head>
-
-<body class="bg-light">
-
-<nav class="navbar navbar-expand-lg navbar-dark bg-success shadow-sm mb-4">
+<nav class="navbar navbar-expand-lg navbar-dark shadow-sm">
     <div class="container">
-        <a class="navbar-brand fw-bold" href="index.php">🌱 Give & Take</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+
+        <!-- Logo -->
+        <a class="navbar-brand" href="index.php">
+            <i class="bi bi-recycle me-1"></i>
+            Sống Xanh Sharing
+        </a>
+
+        <!-- Menu mobile -->
+        <button class="navbar-toggler"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#navbarMenu"
+                aria-controls="navbarMenu"
+                aria-expanded="false"
+                aria-label="Mở menu">
+
             <span class="navbar-toggler-icon"></span>
         </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav me-auto">
-                <li class="nav-item"><a class="nav-link" href="index.php">Trang chủ</a></li>
-                <li class="nav-item"><a class="nav-link" href="index.php?controller=home&action=blog">Góc sống xanh</a></li>
+
+        <div class="collapse navbar-collapse" id="navbarMenu">
+
+            <!-- Menu bên trái -->
+            <ul class="navbar-nav me-auto ms-lg-4">
+
+                <li class="nav-item">
+                    <a class="nav-link" href="index.php">
+                        Trang chủ
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="index.php#categories">
+                        Danh mục
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="index.php?controller=Item&action=search">
+                        Đồ chia sẻ
+                    </a>
+                </li>
+
+                <?php if ($isLoggedIn): ?>
+
+                    <li class="nav-item">
+                        <a class="nav-link text-warning fw-semibold"
+                           href="index.php?controller=Request&action=myRequests">
+
+                            <i class="bi bi-bag-check-fill me-1"></i>
+                            Đồ đã đăng ký nhận
+
+                        </a>
+                    </li>
+                    
+                <?php endif; ?>
+
             </ul>
-            <div class="d-flex gap-2">
-                <a href="index.php?controller=item&action=create" class="btn btn-warning btn-sm fw-bold">🎁 Đăng tặng đồ</a>
-                <a href="index.php?controller=auth&action=login" class="btn btn-outline-light btn-sm">Đăng nhập</a>
+
+            <!-- Menu bên phải -->
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+
+                <?php if ($isLoggedIn): ?>
+
+                    <!-- Đăng đồ tặng -->
+                    <a href="index.php?controller=Item&action=create"
+                       class="btn btn-warning btn-sm fw-bold">
+
+                        <i class="bi bi-gift-fill me-1"></i>
+                        Đăng đồ tặng
+
+                    </a>
+
+                    <!-- Dropdown tài khoản -->
+                    <div class="dropdown">
+
+                        <button class="btn btn-outline-light btn-sm dropdown-toggle"
+                                type="button"
+                                data-bs-toggle="dropdown"
+                                aria-expanded="false">
+
+                            <i class="bi bi-person-circle me-1"></i>
+
+                            <?= htmlspecialchars($username, ENT_QUOTES, 'UTF-8') ?>
+
+                        </button>
+
+                        <ul class="dropdown-menu dropdown-menu-end shadow">
+
+                            <li>
+                                <a class="dropdown-item"
+                                   href="index.php?controller=User&action=profile">
+
+                                    <i class="bi bi-person me-2"></i>
+                                    Tài khoản của tôi
+
+                                </a>
+                            </li>
+
+                            <li>
+                                <a class="dropdown-item"
+                                   href="index.php?controller=Item&action=my_items">
+
+                                    <i class="bi bi-box-seam me-2"></i>
+                                    Kho đồ của tôi
+
+                                </a>
+                            </li>
+
+                            <li>
+                                <a class="dropdown-item"
+                                   href="index.php?controller=Request&action=myRequests">
+
+                                    <i class="bi bi-bag-check me-2"></i>
+                                    Đồ đã đăng ký nhận
+
+                                </a>
+                            </li>
+<!-- ← THÊM MỚI: bắt đầu -->
+                            <li>
+                                <a class="dropdown-item"
+                                    href="index.php?controller=Request&action=manageMyItems">
+
+                                    <i class="bi bi-inbox me-2"></i>
+                                     Yêu cầu nhận đồ của tôi
+
+                                </a>
+                            </li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+
+                            <li>
+                                <a class="dropdown-item text-danger"
+                                   href="index.php?controller=Auth&action=logout">
+
+                                    <i class="bi bi-box-arrow-right me-2"></i>
+                                    Đăng xuất
+
+                                </a>
+                            </li>
+
+                        </ul>
+
+                    </div>
+
+                <?php else: ?>
+
+                    <!-- Chưa đăng nhập -->
+                    <a href="index.php?controller=Auth&action=login"
+                       class="btn btn-outline-light btn-sm">
+
+                        Đăng nhập
+
+                    </a>
+
+                    <a href="index.php?controller=Auth&action=register"
+                       class="btn btn-light text-success fw-bold btn-sm">
+
+                        Đăng ký
+
+                    </a>
+
+                <?php endif; ?>
+
             </div>
+
         </div>
     </div>
 </nav>
-
-<div class="container min-vh-100">
-    <!-- Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>

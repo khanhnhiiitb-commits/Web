@@ -15,16 +15,24 @@ class RequestModel
         $this->db = Database::getConnection();
     }
 
-    // 1. Danh sách các món đồ mình đi xin
+        // 1. Danh sách các món đồ mình đi xin
     public function getMyRequests($userId)
     {
         $sql = "SELECT ir.id AS request_id,
+                       ir.item_id,
                        ir.message,
                        ir.status AS request_status,
                        ir.created_at,
-                       i.title AS item_title
+                       i.title AS item_title,
+                       i.image_url,
+                       i.pickup_location,
+                       i.status AS item_status,
+                       c.name AS category_name,
+                       u.full_name AS owner_name
                 FROM item_requests ir
                 JOIN items i ON ir.item_id = i.id
+                JOIN categories c ON i.category_id = c.id
+                JOIN users u ON i.user_id = u.id
                 WHERE ir.requester_id = :user_id
                 ORDER BY ir.created_at DESC";
 
@@ -151,5 +159,17 @@ class RequestModel
         ]);
 
         return $stmt->rowCount() > 0;
+    }
+    // Tạo yêu cầu nhận đồ mới
+    public function createRequest(int $itemId, int $requesterId, string $message = ''): bool
+    {
+        $sql = "INSERT INTO item_requests (item_id, requester_id, message, status, created_at) 
+                VALUES (:item_id, :requester_id, :message, 'pending', NOW())";
+        $stmt = $this->db->prepare($sql);
+        return $stmt->execute([
+            ':item_id' => $itemId,
+            ':requester_id' => $requesterId,
+            ':message' => $message
+        ]);
     }
 }

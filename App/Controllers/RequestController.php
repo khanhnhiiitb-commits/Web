@@ -45,7 +45,7 @@ class RequestController extends Controller
         $requests = $this->requestModel->getRequestsForMyItems($userId);
 
         // Gọi View hiển thị danh sách người xin đồ
-        $this->view('requests/manage_my_items', [
+        $this->view('requests/my_requests', [
             'requests' => $requests
         ]);
     }

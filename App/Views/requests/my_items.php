@@ -105,6 +105,15 @@ $statusMap = [
                             </p>
 
                             <div class="mt-auto pt-2 border-top">
+                                <?php if ($req['request_status'] === 'pending'): ?>
+                                <form action="index.php?controller=request&action=cancel&id=<?= (int)$req['request_id'] ?>"
+                                  method="POST" class="mb-2"
+                                  onsubmit="return confirm('Bạn không cần món đồ này nữa và muốn hủy yêu cầu?');">
+                                <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill w-100">
+                                <i class="fa-solid fa-xmark me-1"></i> Hủy yêu cầu
+                                </button>
+                                </form>
+                                <?php endif; ?>
                                 <?php if ($stillAvailable): ?>
                                     <a href="index.php?controller=Item&action=detail&id=<?= (int)$req['item_id'] ?>"
                                        class="btn btn-outline-success btn-sm rounded-pill w-100">

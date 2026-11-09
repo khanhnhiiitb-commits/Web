@@ -28,47 +28,57 @@ class AdminController extends Controller
         }
     }
 
-    public function dashboard()
+   public function dashboard()
     {
         $this->checkAdmin();
         $db = Database::getConnection();
 
-        $totalUsers = (int) $db->query("SELECT COUNT(*) FROM users")->fetchColumn();
-        $totalPosts = (int) $db->query("SELECT COUNT(*) FROM posts")->fetchColumn();
-        $totalRequests = (int) $db->query("SELECT COUNT(*) FROM item_requests")->fetchColumn();
+        // 1. Đếm tổng số tài khoản (bảng users)
+        $stmt = $db->prepare("SELECT COUNT(*) FROM users");
+        $stmt->execute();
+        $totalUsers = (int) $stmt->fetchColumn();
 
-       $stmt = $db->prepare("SELECT COUNT(*) FROM posts WHERE status = 'pending'");
+        // 2. Đếm tổng số bài đăng (bảng items)
+        $stmt = $db->prepare("SELECT COUNT(*) FROM items");
+        $stmt->execute();
+        $totalProducts = (int) $stmt->fetchColumn();
+
+        // 3. Đếm tổng giao dịch thành công (bảng item_requests có status='accepted')
+        $stmt = $db->prepare("SELECT COUNT(*) FROM item_requests WHERE status = 'accepted'");
+        $stmt->execute();
+        $totalTransactions = (int) $stmt->fetchColumn();
+
+        // 4. Đếm bài chờ duyệt (bảng items có status='pending')
+        $stmt = $db->prepare("SELECT COUNT(*) FROM items WHERE status = 'pending'");
         $stmt->execute();
         $pendingRequests = (int) $stmt->fetchColumn();
 
-        $recentRequests = $db->query(
-            "SELECT item_requests.id, item_requests.status, users.full_name 
-             FROM item_requests 
-             LEFT JOIN users ON item_requests.requester_id = users.id 
-             ORDER BY item_requests.id DESC LIMIT 5"
+        $recentTransactions = $db->query(
+            "SELECT 
+                item_requests.id,
+                item_requests.status,
+                items.title AS item_title,
+                giver.full_name AS giver_name,
+                requester.full_name AS requester_name
+             FROM item_requests
+             INNER JOIN items ON item_requests.item_id = items.id
+             INNER JOIN users AS requester ON item_requests.requester_id = requester.id
+             INNER JOIN users AS giver ON items.user_id = giver.id
+             ORDER BY item_requests.created_at DESC
+             LIMIT 5"
         )->fetchAll(PDO::FETCH_ASSOC);
 
-        $recentPendingPosts = $db->query(
-            "SELECT posts.id, posts.title, users.full_name as user_name 
-             FROM posts 
-             LEFT JOIN users ON posts.user_id = users.id 
-             WHERE posts.status = 'pending' 
-             ORDER BY posts.id DESC LIMIT 3"
-        )->fetchAll(PDO::FETCH_ASSOC);
-
+        // Chuẩn bị dữ liệu gửi ra View
         $data = [
             'totalUsers' => $totalUsers,
-            'totalPosts' => $totalPosts,
-            'totalRequests' => $totalRequests,
+            'totalProducts' => $totalProducts,
+            'totalTransactions' => $totalTransactions,
             'pendingRequests' => $pendingRequests,
-            'recentRequests' => $recentRequests,
-            'recentPendingPosts' => $recentPendingPosts
+            'recentTransactions' => $recentTransactions
         ];
 
-        // ÉP BUỘC DÙNG GIAO DIỆN 'admin_layout'. DÒNG NÀY QUYẾT ĐỊNH VIỆC CÓ GIAO DIỆN HAY KHÔNG
         $this->view('admin/index', $data, 'admin_layout');
     }
-
     public function users()
     {
         $this->requireAdmin();
@@ -95,36 +105,39 @@ class AdminController extends Controller
         exit;
     }
 
-   public function products()
+  public function products()
     {
         $this->checkAdmin();
         $db = Database::getConnection();
         
         $products = $db->query(
-            "SELECT posts.*, users.full_name as user_name 
-             FROM posts 
-             LEFT JOIN users ON posts.user_id = users.id 
-             ORDER BY posts.id DESC"
+            "SELECT items.*, 
+                    users.full_name AS user_name, 
+                    categories.name AS category 
+             FROM items 
+             LEFT JOIN users ON items.user_id = users.id 
+             LEFT JOIN categories ON items.category_id = categories.id 
+             ORDER BY items.id DESC"
         )->fetchAll(PDO::FETCH_ASSOC);
         
         $this->view('admin/manage_products', ['products' => $products], 'admin_layout');
     }
-    public function approveProduct()
+   public function approveProduct()
     {
         $this->checkAdmin();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $id = (int) ($_POST['id'] ?? 0);
             if ($id > 0) {
                 $db = Database::getConnection();
-                $stmt = $db->prepare("UPDATE posts SET status = 'available' WHERE id = :id");
+                $stmt = $db->prepare("UPDATE items SET status = 'available' WHERE id = :id");
                 $stmt->execute(['id' => $id]);
             }
         }
         
-        header('Location: ' . $_SERVER['HTTP_REFERER']);
+        $redirectUrl = $_SERVER['HTTP_REFERER'] ?? '?controller=Admin&action=products';
+        header('Location: ' . $redirectUrl);
         exit;
     }
-
    public function deleteProduct()
     {
         $this->checkAdmin();
@@ -132,28 +145,53 @@ class AdminController extends Controller
             $id = (int) ($_POST['id'] ?? 0);
             if ($id > 0) {
                 $db = Database::getConnection();
-                $stmt = $db->prepare("DELETE FROM posts WHERE id = :id");
+                // Xóa khỏi bảng items
+                $stmt = $db->prepare("DELETE FROM items WHERE id = :id");
                 $stmt->execute(['id' => $id]);
             }
         }
         
-        // Tự động quay lại chính trang vừa thao tác
-        header('Location: ' . $_SERVER['HTTP_REFERER']);
+        $redirectUrl = $_SERVER['HTTP_REFERER'] ?? '?controller=Admin&action=products';
+        header('Location: ' . $redirectUrl);
         exit;
     }
-
-    public function transactions()
+   public function transactions()
     {
         $this->checkAdmin();
         $db = Database::getConnection();
+        
+        // Lấy danh sách yêu cầu nhận đồ (Lịch sử giao dịch)
         $transactions = $db->query(
-            "SELECT item_requests.*, users.full_name as requester_name 
-             FROM item_requests 
-             LEFT JOIN users ON item_requests.requester_id = users.id 
-             ORDER BY item_requests.id DESC"
+            "SELECT 
+                item_requests.id,
+                item_requests.status,
+                item_requests.created_at,
+                items.title AS item_title,
+                users.full_name AS requester_name
+             FROM item_requests
+             INNER JOIN items ON item_requests.item_id = items.id
+             INNER JOIN users ON item_requests.requester_id = users.id
+             ORDER BY item_requests.created_at DESC"
         )->fetchAll(PDO::FETCH_ASSOC);
-
+        
         $this->view('admin/manage_transactions', ['transactions' => $transactions], 'admin_layout');
+    }
+
+    // Tiện thể thêm luôn hàm Xóa giao dịch để tránh lỗi khi bấm nút Xóa ở View
+    public function deleteTransaction()
+    {
+        $this->checkAdmin();
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $id = (int) ($_POST['id'] ?? 0);
+            if ($id > 0) {
+                $db = Database::getConnection();
+                $stmt = $db->prepare("DELETE FROM item_requests WHERE id = :id");
+                $stmt->execute(['id' => $id]);
+            }
+        }
+        $redirectUrl = $_SERVER['HTTP_REFERER'] ?? '?controller=Admin&action=transactions';
+        header('Location: ' . $redirectUrl);
+        exit;
     }
     // ==========================================
     // TÍNH NĂNG: XUẤT BÁO CÁO EXCEL (DASHBOARD)

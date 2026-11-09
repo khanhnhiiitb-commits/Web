@@ -12,7 +12,8 @@
                 <a href="?controller=Admin&action=dashboard" class="btn btn-white text-secondary bg-white border border-end-0">7 ngày qua</a>
                 <a href="?controller=Admin&action=dashboard" class="btn btn-success fw-bold">Tháng này</a>
             </div>
-<a href="index.php?controller=Admin&action=exportExcel" class="btn btn-success shadow-sm fw-bold"><i class="bi bi-file-earmark-excel"></i> Xuất báo cáo Excel</a>        </div>
+            <a href="?controller=Admin&action=exportExcel" class="btn btn-success shadow-sm fw-bold"><i class="bi bi-file-earmark-excel"></i> Xuất báo cáo Excel</a>
+        </div>
     </div>
 
     <!-- 4 Thẻ Thống Kê (Dashboard Cards) -->
@@ -38,7 +39,7 @@
             <div class="card h-100 border-0 shadow-sm rounded-4">
                 <div class="card-body p-4 position-relative">
                     <p class="text-secondary fw-semibold mb-2">Tổng số bài đăng</p>
-                    <h3 class="display-6 fw-bold text-dark mb-3"><?php echo number_format($totalPosts ?? 0); ?></h3>
+                    <h3 class="display-6 fw-bold text-dark mb-3"><?php echo number_format($totalProducts ?? 0); ?></h3>
                     <p class="text-success small fw-semibold mb-0">
                         <i class="bi bi-graph-up-arrow"></i> +8.3% <span class="text-secondary fw-normal">285 bài đăng tuần này</span>
                     </p>
@@ -54,7 +55,7 @@
             <div class="card h-100 border-0 shadow-sm rounded-4">
                 <div class="card-body p-4 position-relative">
                     <p class="text-secondary fw-semibold mb-2">Tổng giao dịch thành công</p>
-                    <h3 class="display-6 fw-bold text-dark mb-3"><?php echo number_format($totalRequests ?? 0); ?></h3>
+                    <h3 class="display-6 fw-bold text-dark mb-3"><?php echo number_format($totalTransactions ?? 0); ?></h3>
                     <span class="badge bg-success bg-opacity-25 text-success rounded-pill px-3 py-1">Tỉ lệ hoàn thành 88%</span>
                     <span class="text-secondary small ms-2">Xuất sắc</span>
                     <div class="position-absolute top-0 end-0 mt-4 me-4 bg-success bg-opacity-10 rounded-circle p-2">
@@ -72,7 +73,8 @@
                     <h3 class="display-6 fw-bold text-dark mb-3"><?php echo number_format($pendingRequests ?? 0); ?></h3>
                     <div class="d-flex justify-content-between align-items-center">
                         <span class="text-danger small fw-semibold">Cần xử lý ngay</span>
-<a href="index.php?controller=Admin&action=products" class="btn btn-sm btn-light text-primary fw-semibold rounded-pill px-3">Duyệt ngay →</a>                    </div>
+                        <a href="?controller=Admin&action=products" class="btn btn-sm btn-light text-primary fw-semibold rounded-pill px-3">Duyệt ngay →</a>
+                    </div>
                     <div class="position-absolute top-0 end-0 mt-4 me-4 bg-danger bg-opacity-10 rounded-circle p-2">
                         <i class="bi bi-clipboard2-x text-danger fs-4"></i>
                     </div>
@@ -132,7 +134,7 @@
                             <h5 class="fw-bold mb-1">Giao dịch & Trao đổi gần đây</h5>
                             <p class="text-secondary small mb-0">Các hoạt động trao tặng và chia sẻ vòng tuần hoàn mới hoàn tất</p>
                         </div>
-                        <a href="<?= BASE_URL ?>index.php?controller=Admin&action=transactions" class="text-decoration-none fw-semibold text-primary">Xem tất cả giao dịch ></a>
+                        <a href="?controller=Admin&action=transactions" class="text-decoration-none fw-semibold text-primary">Xem tất cả giao dịch ></a>
                     </div>
                     
                     <div class="table-responsive">
@@ -142,33 +144,34 @@
                                     <th class="ps-3 border-0 py-2">MÓN ĐỒ TRAO ĐỔI</th>
                                     <th class="border-0 py-2">NGƯỜI CHIA SẺ</th>
                                     <th class="border-0 py-2">NGƯỜI NHẬN</th>
-                                    <th class="border-0 py-2">TRẠNG THÁI</th>
+                                    <th class="border-0 py-2 text-end">TRẠNG THÁI</th>
                                 </tr>
                             </thead>
-                            <tbody class="fw-semibold">
-                                <?php if (!empty($recentRequests)) { 
-                                    foreach ($recentRequests as $req) { ?>
+                          <tbody>
+                            <?php if (!empty($recentTransactions)) {
+                                foreach ($recentTransactions as $trans) { ?>
+                                    <tr>
+                                        <td class="py-3 px-3 fw-bold text-dark"><?php echo htmlspecialchars($trans['item_title']); ?></td>
+                                        <td class="py-3 px-0 text-muted"><?php echo htmlspecialchars($trans['giver_name']); ?></td>
+                                        <td class="py-3 px-0 text-primary"><?php echo htmlspecialchars($trans['requester_name']); ?></td>
+                                        <td class="py-3 px-0 text-end">
+                                            <?php 
+                                            switch($trans['status']) {
+                                                case 'accepted': echo '<span class="badge bg-success rounded-pill px-3 py-2">Thành công</span>'; break;
+                                                case 'pending': echo '<span class="badge bg-warning text-dark rounded-pill px-3 py-2">Đang chờ</span>'; break;
+                                                case 'rejected': echo '<span class="badge bg-danger rounded-pill px-3 py-2">Từ chối</span>'; break;
+                                                case 'cancelled': echo '<span class="badge bg-secondary rounded-pill px-3 py-2">Đã hủy</span>'; break;
+                                            }
+                                            ?>
+                                        </td>
+                                    </tr>
+                            <?php }
+                            } else { ?>
                                 <tr>
-                                    <td class="ps-3 py-3">
-                                        <div class="d-flex align-items-center">
-                                            <div class="bg-light rounded p-2 me-3"><i class="bi bi-box fs-4 text-secondary"></i></div>
-                                            <div class="text-dark">Đơn yêu cầu #<?php echo $req['id']; ?></div>
-                                        </div>
-                                    </td>
-                                    <td><?php echo htmlspecialchars($req['full_name'] ?? 'Ẩn danh'); ?></td>
-                                    <td><?php echo htmlspecialchars($req['requester_name'] ?? 'Chưa rõ'); ?></td>
-                                    <td>
-                                        <?php if (($req['status'] ?? '') === 'completed') { ?>
-                                            <span class="badge bg-success bg-opacity-25 text-success rounded-pill px-3 py-2"><i class="bi bi-check-circle me-1"></i>Hoàn thành</span>
-                                        <?php } else { ?>
-                                            <span class="badge bg-info bg-opacity-25 text-info rounded-pill px-3 py-2"><i class="bi bi-arrow-repeat me-1"></i><?php echo $req['status']; ?></span>
-                                        <?php } ?>
-                                    </td>
+                                    <td colspan="4" class="py-4 text-center text-muted border-0">Chưa có giao dịch gần đây.</td>
                                 </tr>
-                                <?php } } else { ?>
-                                <tr><td colspan="4" class="text-center py-4">Chưa có giao dịch gần đây.</td></tr>
-                                <?php } ?>
-                            </tbody>
+                            <?php } ?>
+                        </tbody>
                         </table>
                     </div>
                 </div>
@@ -188,7 +191,7 @@
                     
                     <div class="d-flex justify-content-center mb-4 position-relative">
                         <div class="rounded-circle border border-5 border-success d-flex flex-column justify-content-center align-items-center" style="width: 150px; height: 150px; border-top-color: #0dcaf0 !important;">
-                            <h4 class="fw-bold text-dark mb-0"><?php echo number_format($totalPosts ?? 0); ?></h4>
+                            <h4 class="fw-bold text-dark mb-0"><?php echo number_format($totalProducts ?? 0); ?></h4>
                             <small class="text-secondary">món đồ</small>
                         </div>
                     </div>
@@ -211,11 +214,12 @@
                 <div class="card-body p-4">
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h5 class="fw-bold mb-0">Chờ duyệt <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill fs-6"><?php echo $pendingRequests ?? 0; ?> mới</span></h5>
-                        <a href="<?= BASE_URL ?>index.php?controller=Admin&action=products" class="text-decoration-none fw-semibold text-primary small">Duyệt tất cả (<?php echo $pendingRequests ?? 0; ?>)</a>
+                        <a href="?controller=Admin&action=products" class="text-decoration-none fw-semibold text-primary small">Duyệt tất cả (<?php echo $pendingRequests ?? 0; ?>)</a>
                     </div>
                     
                     <?php 
-                    if (!empty($recentPendingPosts)) { 
+                    // Kiểm tra nếu mảng recentPendingPosts tồn tại thì mới chạy vòng lặp
+                    if (isset($recentPendingPosts) && !empty($recentPendingPosts)) { 
                         foreach ($recentPendingPosts as $post) { 
                     ?>
                     <div class="d-flex align-items-start mb-3 p-3 bg-light rounded-3">
@@ -224,7 +228,7 @@
                             <h6 class="fw-bold mb-1"><?php echo htmlspecialchars($post['title'] ?? 'Chưa có tên'); ?> <span class="badge bg-white text-secondary fw-normal border ms-1">Mới</span></h6>
                             <p class="text-secondary small mb-2">Người đăng: <?php echo htmlspecialchars($post['user_name'] ?? 'Ẩn danh'); ?></p>
                             <div class="d-flex gap-2">
-                                <form action="<?= BASE_URL ?>index.php?controller=Admin&action=approveProduct" method="POST" class="w-100 m-0">
+                                <form action="?controller=Admin&action=approveProduct" method="POST" class="w-100 m-0">
                                     <input type="hidden" name="id" value="<?php echo $post['id']; ?>">
                                     <button type="submit" class="btn btn-sm btn-success fw-semibold w-100"><i class="bi bi-check2"></i> Duyệt nhanh</button>
                                 </form>

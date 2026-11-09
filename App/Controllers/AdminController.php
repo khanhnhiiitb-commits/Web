@@ -27,29 +27,52 @@ class AdminController extends Controller
     }
    public function dashboard()
     {
+        
         $this->checkAdmin();
         $db = Database::getConnection();
 
-        // 1. Đếm tổng số tài khoản (bảng users)
-        $stmt = $db->prepare("SELECT COUNT(*) FROM users");
+        // Lấy khoảng thời gian từ URL (mặc định là 'month' - tháng này)
+        $range = $_GET['range'] ?? 'month';
+        
+        // Xác định điều kiện thời gian cho câu lệnh SQL
+        $dateCondition = "";
+        if ($range === 'today') {
+            $dateCondition = " WHERE DATE(created_at) = CURDATE()";
+        } elseif ($range === 'week') {
+            $dateCondition = " WHERE created_at >= NOW() - INTERVAL 7 DAY";
+        } elseif ($range === 'month') {
+            $dateCondition = " WHERE created_at >= NOW() - INTERVAL 30 DAY";
+        }
+
+        // Lọc riêng cho bảng users (có cột created_at)
+        $userCondition = $dateCondition;
+        // Lọc riêng cho bảng items (có cột created_at)
+        $itemCondition = $dateCondition;
+        // Lọc riêng cho bảng item_requests (có cột created_at)
+        $requestCondition = $dateCondition ? $dateCondition . " AND status = 'accepted'" : " WHERE status = 'accepted'";
+        $pendingCondition = $dateCondition ? $dateCondition . " AND status = 'pending'" : " WHERE status = 'pending'";
+
+        // 1. Đếm tổng số tài khoản theo khoảng thời gian
+        $stmt = $db->prepare("SELECT COUNT(*) FROM users" . $userCondition);
         $stmt->execute();
         $totalUsers = (int) $stmt->fetchColumn();
 
-        // 2. Đếm tổng số bài đăng (bảng items)
-        $stmt = $db->prepare("SELECT COUNT(*) FROM items");
+        // 2. Đếm tổng số bài đăng theo khoảng thời gian
+        $stmt = $db->prepare("SELECT COUNT(*) FROM items" . $itemCondition);
         $stmt->execute();
         $totalProducts = (int) $stmt->fetchColumn();
 
-        // 3. Đếm tổng giao dịch thành công (bảng item_requests có status='accepted')
-        $stmt = $db->prepare("SELECT COUNT(*) FROM item_requests WHERE status = 'accepted'");
+        // 3. Đếm tổng giao dịch thành công theo khoảng thời gian
+        $stmt = $db->prepare("SELECT COUNT(*) FROM item_requests" . $requestCondition);
         $stmt->execute();
         $totalTransactions = (int) $stmt->fetchColumn();
 
-        // 4. Đếm bài chờ duyệt (bảng items có status='pending')
-        $stmt = $db->prepare("SELECT COUNT(*) FROM items WHERE status = 'pending'");
+        // 4. Đếm bài chờ duyệt theo khoảng thời gian
+        $stmt = $db->prepare("SELECT COUNT(*) FROM items" . $pendingCondition);
         $stmt->execute();
         $pendingRequests = (int) $stmt->fetchColumn();
 
+        // 5. Lấy danh sách giao dịch gần đây (giữ nguyên hoặc lọc theo ý muốn)
         $recentTransactions = $db->query(
             "SELECT 
                 item_requests.id,
@@ -65,13 +88,14 @@ class AdminController extends Controller
              LIMIT 5"
         )->fetchAll(PDO::FETCH_ASSOC);
 
-        // Chuẩn bị dữ liệu gửi ra View
+        // Truyền biến $range ra View để làm nổi bật (active) nút đang chọn
         $data = [
             'totalUsers' => $totalUsers,
             'totalProducts' => $totalProducts,
             'totalTransactions' => $totalTransactions,
             'pendingRequests' => $pendingRequests,
-            'recentTransactions' => $recentTransactions
+            'recentTransactions' => $recentTransactions,
+            'currentRange' => $range
         ];
 
         $this->view('admin/index', $data, 'admin_layout');
@@ -190,27 +214,38 @@ class AdminController extends Controller
         header('Location: ' . $redirectUrl);
         exit;
     }
-    // ==========================================
     // TÍNH NĂNG: XUẤT BÁO CÁO EXCEL (DASHBOARD)
-    // ==========================================
     public function exportExcel()
     {
-        $this->checkAdmin();
+       $this->checkAdmin();
         $db = Database::getConnection();
 
-        // 1. Lấy dữ liệu thống kê
-        $totalUsers = (int) $db->query("SELECT COUNT(*) FROM users")->fetchColumn();
-        $totalPosts = (int) $db->query("SELECT COUNT(*) FROM posts")->fetchColumn();
-        $totalRequests = (int) $db->query("SELECT COUNT(*) FROM item_requests")->fetchColumn();
+        // 1. Đếm tổng số tài khoản
+        $stmt = $db->query("SELECT COUNT(*) FROM users");
+        $totalUsers = (int) $stmt->fetchColumn();
 
-        // 2. Lấy dữ liệu 50 giao dịch
-        $recentTransactions = $db->query(
-            "SELECT item_requests.id, item_requests.status, item_requests.created_at, users.full_name as requester_name 
-             FROM item_requests 
-             LEFT JOIN users ON item_requests.requester_id = users.id 
-             ORDER BY item_requests.id DESC LIMIT 50"
+        // 2. Đếm tổng số bài đăng (dùng $totalPosts để khớp với đoạn code echo bên dưới)
+        $stmt = $db->query("SELECT COUNT(*) FROM items");
+        $totalPosts = (int) $stmt->fetchColumn();
+
+        // 3. Đếm tổng giao dịch thành công (dùng $totalRequests hoặc $totalTransactions khớp với echo)
+        $stmt = $db->query("SELECT COUNT(*) FROM item_requests WHERE status = 'accepted'");
+        $totalRequests = (int) $stmt->fetchColumn();
+
+        // Lấy danh sách chi tiết giao dịch để đổ vào bảng dưới
+        $transactions = $db->query(
+            "SELECT 
+                item_requests.id,
+                item_requests.status,
+                item_requests.created_at,
+                items.title AS item_title,
+                users.full_name AS requester_name
+             FROM item_requests
+             LEFT JOIN items ON item_requests.item_id = items.id
+             LEFT JOIN users ON item_requests.requester_id = users.id
+             ORDER BY item_requests.created_at DESC
+             LIMIT 50"
         )->fetchAll(PDO::FETCH_ASSOC);
-
         // 3. Đổi Header sang định dạng chuẩn XLS của Excel
         $filename = "BaoCao_SongXanh_" . date('Ymd_His') . ".xls";
         header("Content-Type: application/vnd.ms-excel; charset=utf-8");

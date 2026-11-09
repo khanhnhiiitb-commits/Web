@@ -95,14 +95,20 @@ class AdminController extends Controller
         exit;
     }
 
-    public function products()
+   public function products()
     {
         $this->checkAdmin();
         $db = Database::getConnection();
-        $products = $db->query("SELECT * FROM posts ORDER BY id DESC")->fetchAll(PDO::FETCH_ASSOC);
+        
+        $products = $db->query(
+            "SELECT posts.*, users.full_name as user_name 
+             FROM posts 
+             LEFT JOIN users ON posts.user_id = users.id 
+             ORDER BY posts.id DESC"
+        )->fetchAll(PDO::FETCH_ASSOC);
+        
         $this->view('admin/manage_products', ['products' => $products], 'admin_layout');
     }
-
     public function approveProduct()
     {
         $this->checkAdmin();

@@ -143,6 +143,13 @@ $username = $_SESSION['username']
                                 </a>
                             </li>
                             <li>
+                                <a class="dropdown-item"
+                                href="index.php?controller=Request&action=history">
+                                <i class="bi bi-clock-history me-2"></i>
+                                 Lịch sử giao dịch
+                                </a>
+                            </li>
+                            <li>
                                 <hr class="dropdown-divider">
                             </li>
 

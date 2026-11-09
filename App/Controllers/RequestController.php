@@ -93,7 +93,65 @@ class RequestController extends Controller
         header("Location: index.php?controller=request&action=manageMyItems");
         exit();
     }
+    // 5. Lịch sử giao dịch (cả phía nhận và phía tặng)
+    public function history()
+    {
+        $userId = $this->getUserId();
 
+        if (!$userId) {
+            header("Location: index.php?controller=auth&action=login");
+            exit();
+        }
+
+        $this->view('requests/history', [
+            'received' => $this->requestModel->getMyRequests($userId),
+            'given'    => $this->requestModel->getGivenHistory($userId),
+        ]);
+    }
+
+    // 6. Người nhận hủy yêu cầu (chỉ khi còn chờ duyệt)
+    public function cancel()
+    {
+        $this->checkPost();
+
+        $userId = $this->getUserId();
+        $requestId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+
+        if (!$userId || $requestId <= 0) {
+            die("Yêu cầu không hợp lệ.");
+        }
+
+        $success = $this->requestModel->cancelRequest($requestId, (int)$userId);
+
+        $_SESSION['request_message'] = $success
+            ? "Đã hủy yêu cầu nhận đồ."
+            : "Không thể hủy: yêu cầu này đã được chủ đồ xử lý.";
+
+        header("Location: index.php?controller=request&action=history");
+        exit();
+    }
+
+    // 7. Xác nhận đã trao / đã nhận đồ (mỗi bên bấm một lần)
+    public function confirmHandover()
+    {
+        $this->checkPost();
+
+        $userId = $this->getUserId();
+        $requestId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+
+        if (!$userId || $requestId <= 0) {
+            die("Yêu cầu không hợp lệ.");
+        }
+
+        $success = $this->requestModel->confirmHandover($requestId, (int)$userId);
+
+        $_SESSION['request_message'] = $success
+            ? "Đã ghi nhận xác nhận của bạn. Khi cả hai bên xác nhận, giao dịch sẽ hoàn tất."
+            : "Không thể xác nhận giao dịch này.";
+
+        header("Location: index.php?controller=request&action=history");
+        exit();
+    }
     // Lấy ID người dùng từ Session
     private function getUserId()
     {

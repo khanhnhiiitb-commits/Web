@@ -21,9 +21,11 @@ if (!function_exists('itemImageUrl')) {
 
 // [class badge, chữ hiển thị] theo trạng thái yêu cầu
 $statusMap = [
-    'pending'  => ['bg-warning text-dark', 'Đang chờ duyệt'],
-    'accepted' => ['bg-success',           'Đã được chấp nhận'],
-    'rejected' => ['bg-danger',            'Đã bị từ chối'],
+    'pending'   => ['bg-warning text-dark', 'Đang chờ duyệt'],
+    'accepted'  => ['bg-success',           'Đã được chấp nhận'],
+    'rejected'  => ['bg-danger',            'Đã bị từ chối'],
+    'completed' => ['bg-success',           'Đã hoàn thành'],
+    'cancelled' => ['bg-secondary',         'Đã hủy'],
 ];
 ?>
 

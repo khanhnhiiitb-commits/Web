@@ -10,24 +10,21 @@ class AdminController extends Controller
 {
     private function checkAdmin()
     {
+        // Kiểm tra xem đã đăng nhập chưa
         if (empty($_SESSION['user_id'])) {
-            header('Location: ' . BASE_URL . 'index.php?controller=Auth&action=login');
+            header('Location: ?controller=Auth&action=login');
             exit;
         }
-        if (($_SESSION['role'] ?? '') !== 'admin') {
-            header('Location: ' . BASE_URL . 'index.php?controller=Home&action=index');
-            exit;
-        }
-        $userModel = new UserModel();
-        $user = $userModel->findById($_SESSION['user_id']);
-        if (!$user || (int) $user['status'] !== 1) {
-            $_SESSION = [];
-            session_destroy();
-            header('Location: ' . BASE_URL . 'index.php?controller=Auth&action=login');
+
+        if (empty($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
+            // Nếu là user thường, đá về trang chủ và báo lỗi (hoặc chuyển đến trang 403)
+            echo "<script>
+                    alert('Bạn không có quyền truy cập khu vực Quản trị!');
+                    window.location.href = '/';
+                  </script>";
             exit;
         }
     }
-
    public function dashboard()
     {
         $this->checkAdmin();

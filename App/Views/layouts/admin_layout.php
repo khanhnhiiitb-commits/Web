@@ -32,6 +32,12 @@
                 <a class="nav-link px-3 py-2 text-danger fw-bold" href="index.php?controller=Auth&action=logout" onclick="return confirm('Bạn có muốn đăng xuất không?');">
                     <i class="bi bi-box-arrow-right pe-2"></i>Đăng xuất
                 </a>
+                <!-- Nút quay về trang chủ -->
+<li class="nav-item mb-2" style="list-style: none;">
+    <a href="index.php" class="nav-link text-success fw-semibold text-decoration-none d-flex align-items-center py-2 px-3">
+        <i class="bi bi-house-door me-2"></i> Về trang chủ
+    </a>
+</li>
             </nav>
         </aside>
 
@@ -48,7 +54,6 @@
                 </div>
             </header>
 
-            <!-- CHÈN VIEW ĐỘNG TỪ CONTROLLER: Đã dùng đúng cơ chế ob_get_clean của nhóm bạn -->
             <?php echo $content ?? ''; ?>
 
         </main>

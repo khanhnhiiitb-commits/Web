@@ -1,4 +1,3 @@
-
 <?php
 $isLoggedIn = !empty($_SESSION['user_id']);
 
@@ -50,6 +49,13 @@ $username = $_SESSION['username']
                         Đồ chia sẻ
                     </a>
                 </li>
+
+                <!-- NÚT quan tri -->
+               <li class="nav-item">
+    <a class="nav-link" href="index.php?controller=Admin&action=dashboard">
+        <i class="bi bi-speedometer2"></i> Dashboard Admin
+    </a>
+</li>
 
                 <?php if ($isLoggedIn): ?>
 
@@ -126,7 +132,7 @@ $username = $_SESSION['username']
 
                                 </a>
                             </li>
-<!-- ← THÊM MỚI: bắt đầu -->
+                            <!-- ← THÊM MỚI: bắt đầu -->
                             <li>
                                 <a class="dropdown-item"
                                     href="index.php?controller=Request&action=manageMyItems">

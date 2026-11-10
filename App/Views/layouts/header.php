@@ -12,7 +12,7 @@ $username = $_SESSION['username']
         <!-- Logo -->
         <a class="navbar-brand" href="index.php">
             <i class="bi bi-recycle me-1"></i>
-            Sống Xanh Sharing
+            Give &amp; Take
         </a>
 
         <!-- Menu mobile -->
@@ -45,22 +45,23 @@ $username = $_SESSION['username']
                 </li>
 
                 <li class="nav-item">
-                    <a class="nav-link" href="index.php?controller=Item&action=search">
+                    <a class="nav-link" href="index.php#products">
                         Đồ chia sẻ
                     </a>
                 </li>
 
-                <!-- NÚT quan tri -->
-               <li class="nav-item">
-    <a class="nav-link" href="index.php?controller=Admin&action=dashboard">
-        <i class="bi bi-speedometer2"></i> Dashboard Admin
-    </a>
-</li>
+                <?php if ($isLoggedIn && ($_SESSION['role'] ?? '') === 'admin'): ?>
+                <li class="nav-item">
+                    <a class="nav-link" href="index.php?controller=Admin&amp;action=dashboard">
+                        <i class="bi bi-speedometer2 me-1"></i> Quản trị
+                    </a>
+                </li>
+                <?php endif; ?>
 
                 <?php if ($isLoggedIn): ?>
 
                     <li class="nav-item">
-                        <a class="nav-link text-warning fw-semibold"
+                        <a class="nav-link fw-semibold"
                            href="index.php?controller=Request&action=myRequests">
 
                             <i class="bi bi-bag-check-fill me-1"></i>

@@ -489,7 +489,7 @@ $meetingTime = !empty($delivery['meeting_time'])
         <form method="post"
               action="index.php?controller=Delivery&amp;action=createShipment&amp;id=<?= $id ?>"
               class="card card-body mb-3"
-              onsubmit="return confirm('Tạo vận đơn THỬ NGHIỆM trên GHN Staging? Kiểm tra kỹ số điện thoại, địa chỉ và bên chịu phí.');">
+              onsubmit="return confirm('Bạn xác nhận tạo vận đơn giao hàng cho món đồ này? Vui lòng kiểm tra địa chỉ, số điện thoại và bên trả phí trước khi tiếp tục.');">
             <input type="hidden" name="csrf_token" value="<?= $e($csrfToken) ?>">
             <h5>Tạo vận đơn GHN Staging</h5>
             <p class="small text-muted">Chỉ thực hiện sau khi đã xác nhận đầy đủ thông tin và bên trả phí.</p>

@@ -36,7 +36,7 @@ public function insertItem(array $data): bool
                 :ghn_district_id,
                 :ghn_ward_code,
                 :sender_address_detail,
-                'available'
+                'pending_review'
             )";
 
     $stmt = $this->db->prepare($sql);

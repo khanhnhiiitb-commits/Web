@@ -18,11 +18,8 @@ class AdminController extends Controller
 
         if (empty($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
             // Nếu là user thường, đá về trang chủ và báo lỗi (hoặc chuyển đến trang 403)
-            echo "<script>
-                    alert('Bạn không có quyền truy cập khu vực Quản trị!');
-                    window.location.href = '/';
-                  </script>";
-            exit;
+            http_response_code(403);
+            exit('Bạn không có quyền truy cập khu vực quản trị.');
         }
     }
    public function dashboard()
@@ -50,7 +47,7 @@ class AdminController extends Controller
         $itemCondition = $dateCondition;
         // Lọc riêng cho bảng item_requests (có cột created_at)
         $requestCondition = $dateCondition ? $dateCondition . " AND status = 'accepted'" : " WHERE status = 'accepted'";
-        $pendingCondition = $dateCondition ? $dateCondition . " AND status = 'pending'" : " WHERE status = 'pending'";
+        $pendingCondition = $dateCondition ? $dateCondition . " AND status = 'pending_review'" : " WHERE status = 'pending_review'";
 
         // 1. Đếm tổng số tài khoản theo khoảng thời gian
         $stmt = $db->prepare("SELECT COUNT(*) FROM users" . $userCondition);
@@ -102,7 +99,7 @@ class AdminController extends Controller
     }
     public function users()
     {
-        $this->requireAdmin();
+        $this->checkAdmin();
         $userModel = new UserModel();
         $users = $userModel->getAllUsers();
         $this->view('admin/manage_users', ['users' => $users], 'admin_layout');
@@ -110,7 +107,7 @@ class AdminController extends Controller
 
    public function updateUserStatus()
     {
-        $this->requireAdmin();
+        $this->checkAdmin();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $id = (int) ($_POST['id'] ?? 0);
             $status = filter_var($_POST['status'] ?? null, FILTER_VALIDATE_INT);
@@ -141,41 +138,67 @@ class AdminController extends Controller
              ORDER BY items.id DESC"
         )->fetchAll(PDO::FETCH_ASSOC);
         
-        $this->view('admin/manage_products', ['products' => $products], 'admin_layout');
+        if (empty($_SESSION['admin_product_csrf'])) {
+            $_SESSION['admin_product_csrf'] = bin2hex(random_bytes(32));
+        }
+        $this->view('admin/manage_products', [
+            'products' => $products,
+            'csrfToken' => $_SESSION['admin_product_csrf']
+        ], 'admin_layout');
     }
-   public function approveProduct()
+   private function verifyProductAction(): int
     {
         $this->checkAdmin();
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $id = (int) ($_POST['id'] ?? 0);
-            if ($id > 0) {
-                $db = Database::getConnection();
-                $stmt = $db->prepare("UPDATE items SET status = 'available' WHERE id = :id");
-                $stmt->execute(['id' => $id]);
-            }
+        if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
+            http_response_code(405);
+            exit('Chỉ chấp nhận POST.');
         }
-        
-        $redirectUrl = $_SERVER['HTTP_REFERER'] ?? '?controller=Admin&action=products';
-        header('Location: ' . $redirectUrl);
-        exit;
+        $token = (string)($_POST['csrf_token'] ?? '');
+        if (empty($_SESSION['admin_product_csrf'])
+            || !hash_equals((string)$_SESSION['admin_product_csrf'], $token)) {
+            http_response_code(403);
+            exit('CSRF không hợp lệ.');
+        }
+        $id = filter_var($_POST['id'] ?? null, FILTER_VALIDATE_INT);
+        if (!$id || $id <= 0) {
+            http_response_code(422);
+            exit('Mã món đồ không hợp lệ.');
+        }
+        return (int)$id;
     }
-   public function deleteProduct()
+
+    public function approveProduct(): void
     {
-        $this->checkAdmin();
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $id = (int) ($_POST['id'] ?? 0);
-            if ($id > 0) {
-                $db = Database::getConnection();
-                // Xóa khỏi bảng items
-                $stmt = $db->prepare("DELETE FROM items WHERE id = :id");
-                $stmt->execute(['id' => $id]);
-            }
-        }
-        
-        $redirectUrl = $_SERVER['HTTP_REFERER'] ?? '?controller=Admin&action=products';
-        header('Location: ' . $redirectUrl);
+        $id = $this->verifyProductAction();
+        $db = Database::getConnection();
+        $stmt = $db->prepare("UPDATE items SET status='available'
+                              WHERE id=:id AND status='pending_review'");
+        $stmt->execute([':id' => $id]);
+        header('Location: index.php?controller=Admin&action=products');
         exit;
     }
+
+    public function rejectProduct(): void
+    {
+        $id = $this->verifyProductAction();
+        $db = Database::getConnection();
+        $stmt = $db->prepare("UPDATE items SET status='rejected'
+                              WHERE id=:id AND status='pending_review'");
+        $stmt->execute([':id' => $id]);
+        header('Location: index.php?controller=Admin&action=products');
+        exit;
+    }
+
+   public function deleteProduct(): void
+    {
+        $id = $this->verifyProductAction();
+        $db = Database::getConnection();
+        $stmt = $db->prepare("DELETE FROM items WHERE id = :id AND status IN ('pending_review','rejected')");
+        $stmt->execute([':id' => $id]);
+        header('Location: index.php?controller=Admin&action=products');
+        exit;
+    }
+
    public function transactions()
     {
         $this->checkAdmin();

@@ -18,6 +18,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <!-- CSS riêng -->
     <link rel="stylesheet" href="public/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <style>
         body {
@@ -48,6 +51,7 @@
             color: #ffc107;
         }
     </style>
+    <link rel="stylesheet" href="public/css/style.css">
 </head>
 
 <body>
@@ -56,7 +60,7 @@
     <?php require __DIR__ . '/header.php'; ?>
 
     <!-- NỘI DUNG TỪNG TRANG -->
-    <main class="container main-content">
+    <main class="<?= ($view ?? '') === 'home/index' ? 'main-content' : 'container main-content' ?>">
         <?= $content ?? '' ?>
     </main>
 

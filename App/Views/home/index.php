@@ -37,152 +37,17 @@ $keyword = trim((string)($keyword ?? ''));
 $categoryId = (int)($categoryId ?? 0);
 $location = trim((string)($location ?? ''));
 ?>
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Sống Xanh Sharing - Chia sẻ để yêu thương</title>
-
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-          rel="stylesheet">
-
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
-          rel="stylesheet">
-
-    <style>
-        body {
-            background: #f7faf7;
-            font-family: Arial, sans-serif;
-        }
-.navbar {
-            background: #198754;
-            padding: 15px 0;
-        }
-
-        .navbar-brand {
-            font-size: 23px;
-            font-weight: bold;
-            color: white !important;
-        }
-
-        .navbar .nav-link {
-            color: white !important;
-            margin: 0 8px;
-        }
- .hero {
-            background: linear-gradient(120deg, #198754, #56ab72);
-            color: white;
-            padding: 75px 20px;
-            border-radius: 0 0 35px 35px;
-        }
-
-        .hero h1 {
-            font-size: 42px;
-            font-weight: bold;
-        }
-
-        .hero p {
-            font-size: 17px;
-        }
-
-        .search-box {
-            background: white;
-            padding: 12px;
-            border-radius: 12px;
-            max-width: 750px;
-            margin: 30px auto 0;
-        }
-        .category-card {
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            text-align: center;
-            border: 1px solid #e5eee5;
-            height: 100%;
-            transition: .2s;
-        }
-        .category-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 5px 18px #00000012;
-        }
-        .category-card i {
-            font-size: 30px;
-            color: #198754;
-        }
-        .product-card {
-            border: none;
-            border-radius: 13px;
-            overflow: hidden;
-            transition: .2s;
-            box-shadow: 0 3px 12px #0000000d;
-        }
-
-        .product-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 6px 20px #00000018;
-        }
-
-        .product-image {
-            width: 100%;
-            height: 210px;
-            object-fit: cover;
-            background: #edf5ed;
-        }
-
-        .section-title {
-            color: #198754;
-            font-weight: bold;
-        }
-
-        .btn-green {
-            background: #198754;
-            color: white;
-        }
-
-        .btn-green:hover {
-            background: #146c43;
-            color: white;
-        }
-
-        footer {
-            background: #145c38;
-            color: white;
-            margin-top: 70px;
-            padding: 40px 0 20px;
-        }
-
-        footer a {
-            color: white;
-            text-decoration: none;
-        }
-         .empty-box {
-            background: white;
-            border-radius: 12px;
-            padding: 50px 20px;
-            text-align: center;
-        }
-
-        @media (max-width: 768px) {
-            .hero h1 {
-                font-size: 30px;
-            }
-        }
-    </style>
-</head>
-<body>
-
-
+<div class="gt-home-page">
 <!-- BANNER -->
-<section class="hero text-center">
+<section class="hero text-center gt-hero">
 
-    <div class="container">
+    <div class="container gt-hero-inner">
 
+        <div class="gt-eyebrow">🌱 Cộng đồng chia sẻ đồ dùng</div>
         <h1>Trao đi món đồ cũ, nhận lại niềm vui mới!</h1>
 
         <p class="mt-3">
-            Sống Xanh Sharing - Nơi kết nối cộng đồng,
+            Give & Take - Nơi kết nối cộng đồng,
             chia sẻ đồ dùng và lan tỏa lối sống xanh.
         </p>
 
@@ -243,7 +108,7 @@ $location = trim((string)($location ?? ''));
     </div>
  </section>
 <!-- DANH MỤC -->
-<section class="container mt-5" id="categories">
+<section class="container gt-home-section mt-5" id="categories">
 
     <div class="mb-4">
         <h3 class="section-title">
@@ -258,11 +123,19 @@ $location = trim((string)($location ?? ''));
 
         <?php if (!empty($categories)): ?>
             <?php foreach ($categories as $category): ?>
-                <div class="col-6 col-md-3 col-lg-2">
+                <div class="col-6 col-lg-3">
                     <a class="text-decoration-none text-dark"
                        href="index.php?controller=Home&action=index&category_id=<?= e($category['id']) ?>">
                         <div class="category-card">
-                            <i class="bi bi-box-seam"></i>
+                            <?php
+                                $categoryName = mb_strtolower((string)($category['name'] ?? ''), 'UTF-8');
+                                $categoryIcon = 'bi-box-seam';
+                                if (str_contains($categoryName, 'điện')) $categoryIcon = 'bi-phone';
+                                elseif (str_contains($categoryName, 'nội thất')) $categoryIcon = 'bi-house-heart';
+                                elseif (str_contains($categoryName, 'quần áo')) $categoryIcon = 'bi-bag-heart';
+                                elseif (str_contains($categoryName, 'sách')) $categoryIcon = 'bi-book';
+                            ?>
+                            <span class="gt-category-icon"><i class="bi <?= $categoryIcon ?>"></i></span>
                             <h6 class="mt-3 mb-0">
                                 <?= e($category['name']) ?>
                             </h6>
@@ -276,8 +149,8 @@ $location = trim((string)($location ?? ''));
     </div>
   </section>
 <!-- DANH SÁCH SẢN PHẨM -->
-<section class="container mt-5" id="products">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+<section class="container gt-home-section mt-5" id="products">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
         <div>
             <h3 class="section-title" id="productHeading">
     <i class="bi bi-gift"></i>
@@ -321,7 +194,7 @@ $location = trim((string)($location ?? ''));
 
   </section>
 <!-- GIỚI THIỆU -->
-<section class="container mt-5">
+<section class="container gt-home-section mt-5">
     <div class="row align-items-center bg-white p-4 rounded-4 shadow-sm">
         <div class="col-md-7">
             <h3 class="section-title">
@@ -347,52 +220,7 @@ $location = trim((string)($location ?? ''));
         </div>
     </div>
 </section>
-   <!-- FOOTER -->
-<footer>
-
-    <div class="container">
-
-        <div class="row">
-
-            <div class="col-md-5 mb-4">
-
-                <h4 class="fw-bold">
-                    <i class="bi bi-recycle"></i>
-                    Sống Xanh Sharing
-                </h4>
-
-                <p class="mt-3">
-                    Chia sẻ yêu thương, kết nối cộng đồng,
-                    lan tỏa lối sống xanh.
-                </p>
-            </div>
-            <div class="col-md-3 mb-4">
-                <h5>Liên kết</h5>
-                <p><a href="index.php">Trang chủ</a></p>
-                <p><a href="#categories">Danh mục</a></p>
-                <p><a href="#products">Đồ chia sẻ</a></p>
-            </div>
-            <div class="col-md-4 mb-4">
-                <h5>Tài khoản</h5>
-                <p>
-                    <a href="index.php?controller=Auth&action=login">
-                        Đăng nhập
-                    </a>
-                </p>
-                <p>
-                    <a href="index.php?controller=Auth&action=register">
-                        Đăng ký
-                    </a>
-                </p>
-            </div>
-        </div>
-        <hr>
-        <p class="text-center mb-0">
-            © <?= date('Y') ?> Sống Xanh Sharing.
-            All Rights Reserved.
-        </p>
-    </div>
-</footer>
+</div>
     <script>
 document.addEventListener('DOMContentLoaded', function () {
 
@@ -578,5 +406,4 @@ document.addEventListener('DOMContentLoaded', function () {
 
 });
 </script>
-</body>
-</html>
+

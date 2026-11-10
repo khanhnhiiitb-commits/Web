@@ -16,7 +16,7 @@ if (!function_exists('itemImageUrl')) {
         $image = trim((string) ($image ?? ''));
 
         if ($image === '') {
-            return 'https://placehold.co/400x300/eaf5ea/198754?text=Song+Xanh';
+            return ''; 
         }
 
         if (preg_match('~^https?://~i', $image)) {
@@ -44,18 +44,25 @@ $items = is_array($items ?? null) ? $items : [];
 
     <?php foreach ($items as $item): ?>
 
-        <div class="col-6 col-md-4 col-lg-3">
+        <div class="col-12 col-sm-6 col-lg-4">
 
             <div class="card product-card h-100">
 
+                <?php $hasImage = trim((string)($item['image_url'] ?? '')) !== ''; ?>
+                <div class="gt-product-media <?= $hasImage ? '' : 'gt-no-image' ?>">
+                <?php if ($hasImage): ?>
                 <img
+                    loading="lazy"
                     src="<?= e(itemImageUrl($item['image_url'] ?? '')) ?>"
                     class="product-image"
                     alt="<?= e($item['title'] ?? 'Sản phẩm') ?>"
-                    onerror="this.onerror=null;this.src='https://placehold.co/400x300/eaf5ea/198754?text=Song+Xanh';"
+                    onerror="this.onerror=null;this.hidden=true;this.parentElement.classList.add('gt-no-image');"
                 >
+                <?php endif; ?>
+                <div class="gt-image-fallback" aria-label="Chưa có hình ảnh"><i class="bi bi-image"></i><span>Chưa có hình ảnh</span></div>
+                </div>
 
-                <div class="card-body d-flex flex-column">
+                <div class="card-body d-flex flex-column gt-product-body">
 
                     <span class="badge bg-success mb-2 align-self-start">
                         <?= e($item['category_name'] ?? 'Chưa phân loại') ?>
@@ -65,12 +72,12 @@ $items = is_array($items ?? null) ? $items : [];
                         <?= e($item['title'] ?? '') ?>
                     </h5>
 
-                    <p class="text-muted small">
+                    <p class="text-muted small gt-product-meta">
                         <i class="bi bi-geo-alt"></i>
                         <?= e($item['pickup_location'] ?? 'Chưa cập nhật') ?>
                     </p>
 
-                    <p class="text-muted small">
+                    <p class="text-muted small gt-product-meta">
                         <i class="bi bi-heart"></i>
                         Món đồ đang chờ người nhận.
                     </p>

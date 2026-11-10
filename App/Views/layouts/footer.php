@@ -4,7 +4,7 @@
     <div class="container">
 
         <p class="mb-1">
-            © <?= date('Y') ?> Sống Xanh Sharing -
+            © <?= date('Y') ?> Give &amp; Take -
             Lan tỏa giá trị tái sử dụng.
         </p>
 
@@ -19,5 +19,4 @@
 
 <!-- JavaScript riêng -->
 <script src="js/main.js"></script>
-</body>
-</html>
+

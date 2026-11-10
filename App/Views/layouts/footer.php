@@ -8,9 +8,7 @@
             Lan tỏa giá trị tái sử dụng.
         </p>
 
-        <small>
-            Xây dựng theo kiến trúc OOP + MVC + AJAX/JSON.
-        </small>
+        
 
     </div>
 

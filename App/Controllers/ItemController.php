@@ -44,7 +44,11 @@ class ItemController extends Controller
         $condition = trim($_POST['condition_note'] ?? '');
         $categoryId = (int)($_POST['category_id'] ?? 0);
         $location = trim($_POST['pickup_location'] ?? '');
-
+        // Địa chỉ gửi GHN của món đồ
+        $ghnProvinceId = (int) ($_POST['ghn_province_id'] ?? 0);
+        $ghnDistrictId = (int) ($_POST['ghn_district_id'] ?? 0);
+        $ghnWardCode = trim((string) ($_POST['ghn_ward_code'] ?? ''));
+        $senderAddress = trim((string) ($_POST['sender_address_detail'] ?? ''));
         if (
             $title === '' ||
             $description === '' ||
@@ -56,6 +60,20 @@ class ItemController extends Controller
             header('Location: index.php?controller=Item&action=create');
             exit;
         }
+        // Kiểm tra địa chỉ gửi GHN
+        if (
+            $ghnProvinceId <= 0 ||
+            $ghnDistrictId <= 0 ||
+            $ghnWardCode === '' ||
+            $senderAddress === '' ||
+            mb_strlen($ghnWardCode) > 20 ||
+            mb_strlen($senderAddress) > 255
+        ) {
+    $_SESSION['error'] = 'Vui lòng nhập đầy đủ địa chỉ gửi GHN.';
+
+    header('Location: index.php?controller=Item&action=create');
+    exit;
+}
 
         // Kiểm tra ảnh
         if (
@@ -121,13 +139,19 @@ class ItemController extends Controller
 
         try {
             $this->itemModel->insertItem([
-                'user_id'         => (int)$_SESSION['user_id'],
-                'category_id'     => $categoryId,
-                'title'           => $title,
-                'description'     => $description,
-                'condition_note'  => $condition,
-                'image_url'       => $imageUrl,
-                'pickup_location' => $location
+            'user_id'               => (int) $_SESSION['user_id'],
+            'category_id'           => $categoryId,
+            'title'                 => $title,
+            'description'           => $description,
+            'condition_note'        => $condition,
+            'image_url'             => $imageUrl,
+            'pickup_location'       => $location,
+
+            // Thông tin địa chỉ gửi GHN
+            'ghn_province_id'       => $ghnProvinceId,
+            'ghn_district_id'       => $ghnDistrictId,
+            'ghn_ward_code'         => $ghnWardCode,
+            'sender_address_detail' => $senderAddress
             ]);
 
             $_SESSION['success'] = 'Đăng món đồ thành công!';

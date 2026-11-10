@@ -8,27 +8,54 @@ use PDO;
 class ItemModel extends Model
 {
     // Thêm món đồ mới
-    public function insertItem(array $data): bool
-    {
-        $sql = "INSERT INTO items
-                (user_id, category_id, title, description,
-                 condition_note, image_url, pickup_location, status)
-                VALUES
-                (:user_id, :category_id, :title, :description,
-                 :condition_note, :image_url, :pickup_location, 'available')";
+    
+public function insertItem(array $data): bool
+{
+    $sql = "INSERT INTO items (
+                user_id,
+                category_id,
+                title,
+                description,
+                condition_note,
+                image_url,
+                pickup_location,
+                ghn_province_id,
+                ghn_district_id,
+                ghn_ward_code,
+                sender_address_detail,
+                status
+            ) VALUES (
+                :user_id,
+                :category_id,
+                :title,
+                :description,
+                :condition_note,
+                :image_url,
+                :pickup_location,
+                :ghn_province_id,
+                :ghn_district_id,
+                :ghn_ward_code,
+                :sender_address_detail,
+                'available'
+            )";
 
-        $stmt = $this->db->prepare($sql);
+    $stmt = $this->db->prepare($sql);
 
-        return $stmt->execute([
-            ':user_id'        => $data['user_id'],
-            ':category_id'    => $data['category_id'],
-            ':title'          => $data['title'],
-            ':description'    => $data['description'],
-            ':condition_note' => $data['condition_note'],
-            ':image_url'      => $data['image_url'],
-            ':pickup_location'=> $data['pickup_location']
-        ]);
-    }
+    return $stmt->execute([
+        ':user_id'               => $data['user_id'],
+        ':category_id'           => $data['category_id'],
+        ':title'                 => $data['title'],
+        ':description'           => $data['description'],
+        ':condition_note'        => $data['condition_note'],
+        ':image_url'             => $data['image_url'],
+        ':pickup_location'       => $data['pickup_location'],
+        ':ghn_province_id'       => $data['ghn_province_id'],
+        ':ghn_district_id'       => $data['ghn_district_id'],
+        ':ghn_ward_code'         => $data['ghn_ward_code'],
+        ':sender_address_detail' => $data['sender_address_detail']
+    ]);
+}
+
 
     // Lấy danh sách món đồ đang chia sẻ
     public function getAvailableItems(): array

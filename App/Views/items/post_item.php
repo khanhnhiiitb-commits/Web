@@ -279,7 +279,8 @@ function itemEscape($value): string {
 
                         <div class="mb-0">
                             <label for="pickup_location" class="form-label">
-                                Địa điểm nhận đồ <span class="required-mark">*</span>
+                                 Địa điểm nhận đồ trực tiếp
+                                    <span class="required-mark">*</span>
                             </label>
                             <input
                                 type="text"
@@ -291,7 +292,7 @@ function itemEscape($value): string {
                                 value="<?= itemEscape($_POST['pickup_location'] ?? '') ?>"
                                 required>
                             <div class="form-note">
-                                Cung cấp địa điểm rõ ràng để người nhận thuận tiện liên hệ.
+                                Khu vực hẹn gặp nếu người nhận muốn tự đến lấy đồ.
                             </div>
                         </div>
 
@@ -344,6 +345,72 @@ function itemEscape($value): string {
                     </div>
 
                 </div>
+
+<!-- Địa chỉ gửi hàng GHN -->
+<div class="mt-4 pt-3 border-top">
+    <h5 class="form-section-title">
+        <i class="bi bi-geo-alt me-2"></i>
+        Địa chỉ gửi hàng GHN
+    </h5>
+
+    <p class="text-muted small">
+        Chọn địa chỉ nơi món đồ được gửi đi.
+        Hệ thống sẽ sử dụng địa chỉ này để tính phí vận chuyển.
+    </p>
+
+    <div class="row g-3">
+        <div class="col-md-4">
+            <label for="sender_province" class="form-label">
+                Tỉnh/Thành phố <span class="required-mark">*</span>
+            </label>
+            <select id="sender_province"
+                    name="ghn_province_id"
+                    class="form-select" required>
+                <option value="">Đang tải tỉnh/thành...</option>
+            </select>
+        </div>
+
+        <div class="col-md-4">
+            <label for="sender_district" class="form-label">
+                Quận/Huyện <span class="required-mark">*</span>
+            </label>
+            <select id="sender_district"
+                    name="ghn_district_id"
+                    class="form-select" required disabled>
+                <option value="">Chọn tỉnh/thành trước</option>
+            </select>
+        </div>
+
+        <div class="col-md-4">
+            <label for="sender_ward" class="form-label">
+                Phường/Xã <span class="required-mark">*</span>
+            </label>
+            <select id="sender_ward"
+                    name="ghn_ward_code"
+                    class="form-select" required disabled>
+                <option value="">Chọn quận/huyện trước</option>
+            </select>
+        </div>
+
+        <div class="col-12">
+            <label for="sender_address_detail" class="form-label">
+                Số nhà, tên đường <span class="required-mark">*</span>
+            </label>
+            <input type="text"
+                   id="sender_address_detail"
+                   name="sender_address_detail"
+                   class="form-control"
+                   maxlength="255"
+                   placeholder="Ví dụ: 123 Nguyễn Văn A"
+                   required>
+        </div>
+    </div>
+
+    <div id="sender_address_error"
+         class="text-danger small mt-2"
+         role="alert"></div>
+</div>
+
 
                 <!-- Nút thao tác -->
                 <div class="post-item-actions">
@@ -402,3 +469,138 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 </script>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const province = document.getElementById('sender_province');
+    const district = document.getElementById('sender_district');
+    const ward = document.getElementById('sender_ward');
+    const errorBox = document.getElementById('sender_address_error');
+
+    if (!province || !district || !ward) return;
+
+    const endpoint = 'index.php?controller=Shipment&action=locations';
+
+    function reset(select, label) {
+        select.replaceChildren(new Option(label, ''));
+        select.disabled = true;
+    }
+
+    async function getLocations(type, params = {}) {
+        const url = new URL(endpoint, window.location.href);
+        url.searchParams.set('type', type);
+
+        Object.entries(params).forEach(([key, value]) => {
+            url.searchParams.set(key, value);
+        });
+
+        const response = await fetch(url, {
+            credentials: 'same-origin'
+        });
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success ||
+            !Array.isArray(result.data)) {
+            throw new Error(result.message || 'Không thể tải địa chỉ GHN');
+        }
+
+        return result.data;
+    }
+
+    function populate(select, data, idField, nameField, label) {
+        reset(select, label);
+
+        data.forEach(item => {
+            select.add(new Option(item[nameField], item[idField]));
+        });
+
+        select.disabled = false;
+    }
+
+    async function loadProvinces() {
+        errorBox.textContent = '';
+
+        try {
+            const data = await getLocations('provinces');
+
+            populate(
+                province, data,
+                'ProvinceID', 'ProvinceName',
+                'Chọn tỉnh/thành'
+            );
+        } catch (error) {
+            reset(province, 'Không tải được tỉnh/thành');
+            errorBox.textContent = error.message;
+        }
+    }
+
+    province.addEventListener('change', async () => {
+        const selectedProvince = province.value;
+
+        reset(district, 'Chọn quận/huyện');
+        reset(ward, 'Chọn phường/xã');
+        errorBox.textContent = '';
+
+        if (!selectedProvince) return;
+
+        reset(district, 'Đang tải quận/huyện...');
+
+        try {
+            const data = await getLocations('districts', {
+                province_id: selectedProvince
+            });
+
+            if (province.value !== selectedProvince) return;
+
+            populate(
+                district, data,
+                'DistrictID', 'DistrictName',
+                'Chọn quận/huyện'
+            );
+        } catch (error) {
+            if (province.value !== selectedProvince) return;
+
+            reset(district, 'Không tải được quận/huyện');
+            errorBox.textContent = error.message;
+        }
+    });
+
+    district.addEventListener('change', async () => {
+        const selectedDistrict = district.value;
+        const selectedProvince = province.value;
+
+        reset(ward, 'Chọn phường/xã');
+        errorBox.textContent = '';
+
+        if (!selectedDistrict) return;
+
+        reset(ward, 'Đang tải phường/xã...');
+
+        try {
+            const data = await getLocations('wards', {
+                district_id: selectedDistrict
+            });
+
+            if (
+                district.value !== selectedDistrict ||
+                province.value !== selectedProvince
+            ) return;
+
+            populate(
+                ward, data,
+                'WardCode', 'WardName',
+                'Chọn phường/xã'
+            );
+        } catch (error) {
+            if (district.value !== selectedDistrict) return;
+
+            reset(ward, 'Không tải được phường/xã');
+            errorBox.textContent = error.message;
+        }
+    });
+
+    loadProvinces();
+});
+</script>
+

@@ -15,7 +15,7 @@ $labels = [
         <table class="table table-hover align-middle mb-0">
             <thead class="table-light"><tr>
                 <th>Món đồ</th><th>Người đăng</th><th>Danh mục</th>
-                <th>Trạng thái</th><th>Thao tác</th>
+                <th>Trạng thái</th><th class="text-center">Thao tác</th>
             </tr></thead>
             <tbody>
             <?php foreach (($products ?? []) as $post): ?>
@@ -26,24 +26,30 @@ $labels = [
                     <td><?= $esc($post['user_name'] ?? '') ?></td>
                     <td><?= $esc($post['category'] ?? '') ?></td>
                     <td><span class="badge <?= $badge ?>"><?= $esc($label) ?></span></td>
-                    <td>
-                        <?php if ($status === 'pending_review'): ?>
-                        <div class="d-flex flex-wrap gap-2">
-                            <form method="post" action="index.php?controller=Admin&amp;action=approveProduct">
+                    <td class="text-center">
+                        <div class="d-flex justify-content-center align-items-center gap-2 flex-wrap">
+                            <?php if ($status === 'pending_review'): ?>
+                                <!-- Nút Duyệt -->
+                                <form method="post" action="index.php?controller=Admin&amp;action=approveProduct" class="m-0">
+                                    <input type="hidden" name="id" value="<?= (int)$post['id'] ?>">
+                                    <input type="hidden" name="csrf_token" value="<?= $esc($csrfToken ?? '') ?>">
+                                    <button type="submit" class="btn btn-sm btn-success px-3" style="width: 75px;">Duyệt</button>
+                                </form>
+                                <!-- Nút Từ chối -->
+                                <form method="post" action="index.php?controller=Admin&amp;action=rejectProduct" class="m-0" onsubmit="return confirm('Từ chối bài đăng này?');">
+                                    <input type="hidden" name="id" value="<?= (int)$post['id'] ?>">
+                                    <input type="hidden" name="csrf_token" value="<?= $esc($csrfToken ?? '') ?>">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger px-3" style="width: 75px;">Từ chối</button>
+                                </form>
+                            <?php endif; ?>
+
+                            <!-- Nút Xóa bài đăng (Luôn hiển thị cho mọi trạng thái) -->
+                            <form method="post" action="index.php?controller=Admin&amp;action=deleteProduct" class="m-0" onsubmit="return confirm('Bạn có chắc chắn muốn xóa bài đăng này không?');">
                                 <input type="hidden" name="id" value="<?= (int)$post['id'] ?>">
-                                <input type="hidden" name="csrf_token" value="<?= $esc($csrfToken) ?>">
-                                <button type="submit" class="btn btn-sm btn-success">Duyệt</button>
-                            </form>
-                            <form method="post" action="index.php?controller=Admin&amp;action=rejectProduct"
-                                  onsubmit="return confirm('Từ chối bài đăng này?');">
-                                <input type="hidden" name="id" value="<?= (int)$post['id'] ?>">
-                                <input type="hidden" name="csrf_token" value="<?= $esc($csrfToken) ?>">
-                                <button type="submit" class="btn btn-sm btn-outline-danger">Từ chối</button>
+                                <input type="hidden" name="csrf_token" value="<?= $esc($csrfToken ?? '') ?>">
+                                <button type="submit" class="btn btn-sm btn-outline-danger px-3" style="width: 75px;">Xóa</button>
                             </form>
                         </div>
-                        <?php else: ?>
-                            <span class="text-muted small">Không cần duyệt</span>
-                        <?php endif; ?>
                     </td>
                 </tr>
             <?php endforeach; ?>

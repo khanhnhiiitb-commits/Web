@@ -186,13 +186,21 @@ class AdminController extends Controller
         exit;
     }
 
-   public function deleteProduct(): void
+   public function deleteProduct()
     {
-        $id = $this->verifyProductAction();
-        $db = Database::getConnection();
-        $stmt = $db->prepare("DELETE FROM items WHERE id = :id AND status IN ('pending_review','rejected')");
-        $stmt->execute([':id' => $id]);
-        header('Location: index.php?controller=Admin&action=products');
+        $this->checkAdmin();
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $id = (int) ($_POST['id'] ?? 0);
+            if ($id > 0) {
+                $db = Database::getConnection();
+                
+                // Xóa bài đăng trong bảng items theo ID
+                $stmt = $db->prepare("DELETE FROM items WHERE id = :id");
+                $stmt->execute(['id' => $id]);
+            }
+        }
+        // Quay lại trang quản lý bài đăng
+        header('Location: ?controller=Admin&action=products');
         exit;
     }
 

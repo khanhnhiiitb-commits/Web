@@ -41,11 +41,8 @@ class AdminController extends Controller
             $dateCondition = " WHERE created_at >= NOW() - INTERVAL 30 DAY";
         }
 
-        // Lọc riêng cho bảng users (có cột created_at)
         $userCondition = $dateCondition;
-        // Lọc riêng cho bảng items (có cột created_at)
         $itemCondition = $dateCondition;
-        // Lọc riêng cho bảng item_requests (có cột created_at)
         $requestCondition = $dateCondition ? $dateCondition . " AND status = 'accepted'" : " WHERE status = 'accepted'";
         $pendingCondition = $dateCondition ? $dateCondition . " AND status = 'pending_review'" : " WHERE status = 'pending_review'";
 
@@ -64,8 +61,8 @@ class AdminController extends Controller
         $stmt->execute();
         $totalTransactions = (int) $stmt->fetchColumn();
 
-        // 4. Đếm bài chờ duyệt theo khoảng thời gian
-        $stmt = $db->prepare("SELECT COUNT(*) FROM items" . $pendingCondition);
+      // Đếm tất cả các bài chưa được duyệt 
+        $stmt = $db->prepare("SELECT COUNT(*) FROM items WHERE status != 'available' OR status IS NULL");
         $stmt->execute();
         $pendingRequests = (int) $stmt->fetchColumn();
 

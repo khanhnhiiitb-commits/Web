@@ -8,19 +8,30 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Nhúng Icon Bootstrap -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <style>
-        body { background-color: #f1f4f6; }
-        .sidebar { width: 260px; background-color: #fff; min-height: 100vh; }
-        .nav-link { color: #495057; font-weight: 500; margin-bottom: 5px; border-radius: 5px; }
-        .nav-link:hover, .nav-link.active { background-color: #e9ecef; color: #198754; }
-    </style>
+ <style>
+    body {
+        background: linear-gradient(160deg, #e8f5e9 0%, #f4f6f9 50%, #f4f6f9 100%) !important;
+        background-attachment: fixed; /* Giữ nền cố định khi cuộn */
+    }
+    
+    .sidebar {
+        background-color: rgba(255, 255, 255, 0.8) !important;
+        backdrop-filter: blur(10px);
+        border-right: 1px solid rgba(0, 0, 0, 0.05);
+    }
+    
+    .card, .bg-white {
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03) !important;
+        border: none !important;
+    }
+</style>
 </head>
 <body>
     <div class="d-flex">
         <!-- SIDEBAR -->
         <aside class="sidebar shadow-sm p-3">
             <div class="fs-4 fw-bold text-success mb-4 text-center">
-                🌱 Sống Xanh Admin
+                🌱 Sống Xanh Adminmmmm
             </div>
        <nav class="nav flex-column">
                 <a class="nav-link px-3 py-2" href="index.php?controller=Admin&action=dashboard"><i class="bi bi-graph-up pe-2"></i>Tổng quan</a>

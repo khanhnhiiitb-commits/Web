@@ -243,27 +243,29 @@ class AdminController extends Controller
         exit;
     }
     // TÍNH NĂNG: XUẤT BÁO CÁO EXCEL (DASHBOARD)
-    public function exportExcel()
+   public function exportExcel()
     {
-       $this->checkAdmin();
+        $this->checkAdmin();
         $db = Database::getConnection();
 
-        // 1. Đếm tổng số tài khoản
+        // 1. Cài đặt múi giờ Việt Nam để ngày xuất báo cáo chuẩn xác
+        date_default_timezone_set('Asia/Ho_Chi_Minh');
+        $exportTime = date('d/m/Y H:i:s');
+
+        // 2. Đếm số liệu tổng quan
         $stmt = $db->query("SELECT COUNT(*) FROM users");
         $totalUsers = (int) $stmt->fetchColumn();
 
-        // 2. Đếm tổng số bài đăng (dùng $totalPosts để khớp với đoạn code echo bên dưới)
         $stmt = $db->query("SELECT COUNT(*) FROM items");
         $totalPosts = (int) $stmt->fetchColumn();
 
-        // 3. Đếm tổng giao dịch thành công (dùng $totalRequests hoặc $totalTransactions khớp với echo)
         $stmt = $db->query("SELECT COUNT(*) FROM item_requests WHERE status = 'accepted'");
         $totalRequests = (int) $stmt->fetchColumn();
 
-        // Lấy danh sách chi tiết giao dịch để đổ vào bảng dưới
+        // 3. Lấy chi tiết giao dịch (Đã sửa lại câu truy vấn để lấy đúng dữ liệu)
         $transactions = $db->query(
             "SELECT 
-                item_requests.id,
+                item_requests.id AS request_id,
                 item_requests.status,
                 item_requests.created_at,
                 items.title AS item_title,
@@ -274,58 +276,69 @@ class AdminController extends Controller
              ORDER BY item_requests.created_at DESC
              LIMIT 50"
         )->fetchAll(PDO::FETCH_ASSOC);
-        // 3. Đổi Header sang định dạng chuẩn XLS của Excel
-        $filename = "BaoCao_SongXanh_" . date('Ymd_His') . ".xls";
+
+        // Bắt đầu xuất file
         header("Content-Type: application/vnd.ms-excel; charset=utf-8");
-        header("Content-Disposition: attachment; filename=\"$filename\"");
+        header("Content-Disposition: attachment; filename=Bao_Cao_Van_Hanh_" . date('Ymd_His') . ".xls");
+        header("Pragma: no-cache");
+        header("Expires: 0");
+
+        // Xuất thẻ meta để hỗ trợ tiếng Việt có dấu
+        echo '<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />';
+
+        // 4. Định dạng lại giao diện Excel bằng HTML/CSS
+        echo '<div style="font-family: Arial, sans-serif; font-size: 14px;">';
         
-        // 4. In ra mã HTML được style bằng CSS
-        echo '<html xmlns:x="urn:schemas-microsoft-com:office:excel">';
-        echo '<head><meta charset="UTF-8"></head>';
-        echo '<body>';
-        
-        // Tiêu đề báo cáo
-        echo '<h2 style="color: #198754; text-align: center; font-size: 24px;">BÁO CÁO VẬN HÀNH SỐNG XANH SHARING</h2>';
-        echo '<p><strong>Ngày xuất:</strong> ' . date('d/m/Y H:i:s') . '</p>';
-        
+        // Tiêu đề chính
+        echo '<h2 style="color: #198754; text-align: center; text-transform: uppercase; margin-bottom: 5px;">BÁO CÁO VẬN HÀNH SỐNG XANH SHARING</h2>';
+        echo '<p style="text-align: center; font-style: italic; color: #555; margin-bottom: 20px;">Ngày xuất: ' . $exportTime . '</p>';
+
         // Bảng 1: Thống kê tổng quan
-        echo '<table border="1" cellpadding="8" style="border-collapse: collapse; width: 100%; font-family: Arial;">';
-        echo '<tr style="background-color: #198754; color: white; font-weight: bold;"><td colspan="2" style="text-align: center;">TỔNG QUAN HỆ THỐNG</td></tr>';
-        echo '<tr><td style="width: 200px;"><strong>Tổng số tài khoản:</strong></td><td style="text-align: right;">' . $totalUsers . '</td></tr>';
+        echo '<table border="1" cellpadding="8" style="border-collapse: collapse; width: 50%; margin: 0 auto 30px auto; font-family: Arial;">';
+        echo '<tr><th colspan="2" style="background-color: #198754; color: white; text-align: center; font-size: 16px;">TỔNG QUAN HỆ THỐNG</th></tr>';
+        echo '<tr><td style="width: 60%;"><strong>Tổng số tài khoản:</strong></td><td style="text-align: right;">' . $totalUsers . '</td></tr>';
         echo '<tr><td><strong>Tổng số bài đăng:</strong></td><td style="text-align: right;">' . $totalPosts . '</td></tr>';
-        echo '<tr><td><strong>Tổng giao dịch:</strong></td><td style="text-align: right;">' . $totalRequests . '</td></tr>';
-        echo '</table><br><br>';
-        
+        echo '<tr><td><strong>Tổng giao dịch thành công:</strong></td><td style="text-align: right;">' . $totalRequests . '</td></tr>';
+        echo '</table>';
+
         // Bảng 2: Chi tiết giao dịch
         echo '<table border="1" cellpadding="8" style="border-collapse: collapse; width: 100%; font-family: Arial;">';
-        echo '<tr style="background-color: #0dcaf0; color: white; font-weight: bold;"><td colspan="4" style="text-align: center;">CHI TIẾT 50 GIAO DỊCH GẦN NHẤT</td></tr>';
-        echo '<tr style="background-color: #f8f9fa; font-weight: bold; text-align: center;">
-                <td style="width: 80px;">Mã Đơn</td>
-                <td style="width: 250px;">Người Nhận</td>
-                <td style="width: 150px;">Trạng Thái</td>
-                <td style="width: 200px;">Ngày Tạo</td>
+        echo '<tr><th colspan="5" style="background-color: #0dcaf0; color: white; text-align: center; font-size: 16px;">CHI TIẾT 50 GIAO DỊCH GẦN NHẤT</th></tr>';
+        echo '<tr style="background-color: #f8f9fa;">
+                <th style="width: 10%; text-align: center;">Mã Đơn</th>
+                <th style="width: 35%; text-align: left;">Tên Món Đồ</th>
+                <th style="width: 25%; text-align: left;">Người Nhận</th>
+                <th style="width: 15%; text-align: center;">Trạng Thái</th>
+                <th style="width: 15%; text-align: center;">Ngày Tạo</th>
               </tr>';
 
-        if (!empty($recentTransactions)) {
-            foreach ($recentTransactions as $row) {
-                // Tô màu trạng thái
-                $statusColor = 'black';
-                if ($row['status'] === 'completed') $statusColor = '#198754'; // Xanh lá
-                if ($row['status'] === 'pending') $statusColor = '#fd7e14'; // Cam
+        if (empty($transactions)) {
+            echo '<tr><td colspan="5" style="text-align: center; color: red;">Không có dữ liệu giao dịch nào.</td></tr>';
+        } else {
+            foreach ($transactions as $txn) {
+                // Chuyển đổi trạng thái sang tiếng Việt
+                $statusMap = [
+                    'pending' => '<span style="color: #ffc107; font-weight: bold;">Chờ duyệt</span>',
+                    'accepted' => '<span style="color: #198754; font-weight: bold;">Thành công</span>',
+                    'rejected' => '<span style="color: #dc3545; font-weight: bold;">Từ chối</span>'
+                ];
+                $displayStatus = $statusMap[$txn['status']] ?? $txn['status'];
+
+                // Định dạng lại ngày giờ
+                $formattedDate = date('d/m/Y H:i', strtotime($txn['created_at']));
 
                 echo '<tr>';
-                echo '<td style="text-align: center;">#' . $row['id'] . '</td>';
-                echo '<td>' . htmlspecialchars($row['requester_name'] ?? 'Ẩn danh') . '</td>';
-                echo '<td style="color: ' . $statusColor . '; font-weight: bold; text-align: center;">' . strtoupper($row['status']) . '</td>';
-                echo '<td style="text-align: center;">' . ($row['created_at'] ?? 'Chưa rõ') . '</td>';
+                echo '<td style="text-align: center;">#' . htmlspecialchars($txn['request_id']) . '</td>';
+                echo '<td>' . htmlspecialchars($txn['item_title'] ?? 'N/A') . '</td>';
+                echo '<td>' . htmlspecialchars($txn['requester_name'] ?? 'N/A') . '</td>';
+                echo '<td style="text-align: center;">' . $displayStatus . '</td>';
+                echo '<td style="text-align: center;">' . $formattedDate . '</td>';
                 echo '</tr>';
             }
-        } else {
-            echo '<tr><td colspan="4" style="text-align: center; color: red;">Không có dữ liệu giao dịch nào.</td></tr>';
         }
         
         echo '</table>';
-        echo '</body></html>';
+        echo '</div>';
         exit;
     }
 }

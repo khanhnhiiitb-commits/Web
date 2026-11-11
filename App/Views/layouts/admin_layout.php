@@ -31,7 +31,7 @@
         <!-- SIDEBAR -->
         <aside class="sidebar shadow-sm p-3">
             <div class="fs-4 fw-bold text-success mb-4 text-center">
-                🌱 Sống Xanh Adminmmmm
+                🌱 Sống Xanh Admin
             </div>
        <nav class="nav flex-column">
                 <a class="nav-link px-3 py-2" href="index.php?controller=Admin&action=dashboard"><i class="bi bi-graph-up pe-2"></i>Tổng quan</a>

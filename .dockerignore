@@ -1,0 +1,8 @@
+.git
+.env
+.env.*
+!.env.example
+*.sql
+*.log
+test_ghn_env.php
+node_modules

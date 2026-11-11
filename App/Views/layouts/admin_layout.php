@@ -9,20 +9,61 @@
     <!-- Nhúng Icon Bootstrap -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
  <style>
+    /* 1. Nền Gradient "Sống Xanh" mượt mà giống trang chủ */
     body {
-        background: linear-gradient(160deg, #e8f5e9 0%, #f4f6f9 50%, #f4f6f9 100%) !important;
-        background-attachment: fixed; /* Giữ nền cố định khi cuộn */
+        background: linear-gradient(135deg, #e0f2e9 0%, #f9fbf0 50%, #e0f2e9 100%) !important;
+        background-attachment: fixed !important;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
-    
-    .sidebar {
-        background-color: rgba(255, 255, 255, 0.8) !important;
-        backdrop-filter: blur(10px);
-        border-right: 1px solid rgba(0, 0, 0, 0.05);
+
+    .sidebar { 
+        background: rgba(255, 255, 255, 0.6) !important; 
+        backdrop-filter: blur(12px) !important; 
+        -webkit-backdrop-filter: blur(12px) !important;
+        border-right: 1px solid rgba(255, 255, 255, 0.4) !important;
+        box-shadow: 4px 0 15px rgba(0, 0, 0, 0.02) !important;
+        transition: all 0.3s ease;
     }
-    
+
+    .sidebar a:hover {
+        background: rgba(25, 135, 84, 0.1) !important; 
+        border-radius: 8px;
+        transform: translateX(5px); 
+        transition: all 0.3s ease;
+    }
+
     .card, .bg-white {
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03) !important;
-        border: none !important;
+        background: rgba(255, 255, 255, 0.85) !important; 
+        backdrop-filter: blur(8px) !important;
+        border: 1px solid rgba(255, 255, 255, 0.6) !important;
+        border-radius: 16px !important; 
+        box-shadow: 0 8px 25px rgba(25, 135, 84, 0.05) !important;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 30px rgba(25, 135, 84, 0.1) !important;
+    }
+
+   
+    .top-header, header { 
+        background: rgba(255, 255, 255, 0.6) !important;
+        backdrop-filter: blur(10px) !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.4) !important;
+    }
+    
+    .form-control {
+        border-radius: 20px !important;
+        border: 1px solid rgba(0,0,0,0.1) !important;
+        background: rgba(255, 255, 255, 0.8) !important;
+        transition: all 0.3s ease;
+    }
+    
+    .form-control:focus {
+        background: #fff !important;
+        box-shadow: 0 0 0 0.25rem rgba(25, 135, 84, 0.25) !important;
+        border-color: #198754 !important;
     }
 </style>
 </head>

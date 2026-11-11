@@ -8,24 +8,11 @@ use PDO;
 
 class AdminController extends Controller
 {
-    private function checkAdmin()
-    {
-        // Kiểm tra xem đã đăng nhập chưa
-        if (empty($_SESSION['user_id'])) {
-            header('Location: ?controller=Auth&action=login');
-            exit;
-        }
-
-        if (empty($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
-            // Nếu là user thường, đá về trang chủ và báo lỗi (hoặc chuyển đến trang 403)
-            http_response_code(403);
-            exit('Bạn không có quyền truy cập khu vực quản trị.');
-        }
-    }
+    
    public function dashboard()
     {
         
-        $this->checkAdmin();
+        $this->requireAdmin();
         $db = Database::getConnection();
 
         // Lấy khoảng thời gian từ URL (mặc định là 'month' - tháng này)
@@ -96,7 +83,7 @@ class AdminController extends Controller
     }
     public function users()
     {
-        $this->checkAdmin();
+        $this->requireAdmin();
         $userModel = new UserModel();
         $users = $userModel->getAllUsers();
         $this->view('admin/manage_users', ['users' => $users], 'admin_layout');
@@ -104,7 +91,7 @@ class AdminController extends Controller
 
    public function updateUserStatus()
     {
-        $this->checkAdmin();
+        $this->requireAdmin();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $id = (int) ($_POST['id'] ?? 0);
             $status = filter_var($_POST['status'] ?? null, FILTER_VALIDATE_INT);
@@ -122,7 +109,7 @@ class AdminController extends Controller
 
   public function products()
     {
-        $this->checkAdmin();
+        $this->requireAdmin();
         $db = Database::getConnection();
         
         $products = $db->query(
@@ -145,7 +132,7 @@ class AdminController extends Controller
     }
    private function verifyProductAction(): int
     {
-        $this->checkAdmin();
+        $this->requireAdmin();
         if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
             http_response_code(405);
             exit('Chỉ chấp nhận POST.');
@@ -188,7 +175,7 @@ class AdminController extends Controller
 
    public function deleteProduct()
     {
-        $this->checkAdmin();
+        $this->requireAdmin();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $id = (int) ($_POST['id'] ?? 0);
             if ($id > 0) {
@@ -206,7 +193,7 @@ class AdminController extends Controller
 
    public function transactions()
     {
-        $this->checkAdmin();
+        $this->requireAdmin();
         $db = Database::getConnection();
         
         // Lấy danh sách yêu cầu nhận đồ (Lịch sử giao dịch)
@@ -229,7 +216,7 @@ class AdminController extends Controller
     // Tiện thể thêm luôn hàm Xóa giao dịch để tránh lỗi khi bấm nút Xóa ở View
     public function deleteTransaction()
     {
-        $this->checkAdmin();
+        $this->requireAdmin();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $id = (int) ($_POST['id'] ?? 0);
             if ($id > 0) {
@@ -245,7 +232,7 @@ class AdminController extends Controller
     // TÍNH NĂNG: XUẤT BÁO CÁO EXCEL (DASHBOARD)
     public function exportExcel()
     {
-       $this->checkAdmin();
+       $this->requireAdmin();
         $db = Database::getConnection();
 
         // 1. Đếm tổng số tài khoản

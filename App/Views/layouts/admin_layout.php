@@ -98,8 +98,8 @@
     <div class="d-flex">
         <!-- SIDEBAR -->
         <aside class="sidebar p-3 d-flex flex-column">
-            <div class="fs-4 fw-bold text-success mb-4 text-center mt-2">
-                🌱 Sống Xanh
+         <div class="fs-4 fw-bold text-success mb-4 text-center mt-2 d-flex justify-content-center align-items-center">
+                <i class="bi bi-recycle me-2" style="font-size: 1.2rem;"></i> Give & Take
             </div>
             
             <nav class="nav flex-column flex-grow-1">

@@ -101,6 +101,44 @@ $meetingTime = !empty($delivery['meeting_time'])
                             <button type="submit" class="btn btn-outline-warning btn-sm">Đối soát vận đơn GHN</button>
                         </form>
                     <?php endif; ?>
+                    <?php if (!empty($delivery['tracking_number'])): ?>
+                        <?php
+                        $ghnLabels = [
+                            'created' => 'Đã tạo vận đơn',
+                            'ready_to_pick' => 'Chờ lấy hàng',
+                            'picking' => 'Đang lấy hàng',
+                            'picked' => 'Đã lấy hàng',
+                            'storing' => 'Đang lưu kho',
+                            'transporting' => 'Đang vận chuyển',
+                            'sorting' => 'Đang phân loại',
+                            'delivering' => 'Đang giao hàng',
+                            'delivered' => 'Giao hàng thành công',
+                            'delivery_fail' => 'Giao hàng thất bại',
+                            'waiting_to_return' => 'Chờ hoàn hàng',
+                            'return' => 'Đang hoàn hàng',
+                            'returned' => 'Đã hoàn hàng',
+                            'cancel' => 'Đã hủy',
+                        ];
+                        ?>
+                        <details class="mt-3" <?= !empty($ghnEvents) ? 'open' : '' ?>>
+                            <summary class="fw-semibold small">Lịch sử cập nhật GHN (<?= count($ghnEvents ?? []) ?>)</summary>
+                            <?php if (empty($ghnEvents)): ?>
+                                <p class="small text-muted mt-2 mb-0">Chưa có sự kiện được lưu. Có thể bấm Cập nhật GHN để đồng bộ.</p>
+                            <?php else: ?>
+                                <ol class="list-group list-group-numbered mt-2">
+                                    <?php foreach ($ghnEvents as $event): ?>
+                                        <li class="list-group-item d-flex flex-wrap justify-content-between gap-2">
+                                            <div>
+                                                <div class="fw-semibold small"><?= $e($ghnLabels[$event['ghn_status']] ?? $event['ghn_status']) ?></div>
+                                                <div class="text-muted small"><?= $e($event['event_type']) ?> · <?= $event['source'] === 'webhook' ? 'GHN Webhook' : 'Đối soát API' ?></div>
+                                            </div>
+                                            <div class="text-muted small"><?= $e($event['event_time']) ?> UTC</div>
+                                        </li>
+                                    <?php endforeach; ?>
+                                </ol>
+                            <?php endif; ?>
+                        </details>
+                    <?php endif; ?>
                     <details class="mt-3">
                         <summary class="small text-muted" style="cursor:pointer">Xem địa chỉ và chi tiết giao hàng</summary>
                         <div class="small mt-2">

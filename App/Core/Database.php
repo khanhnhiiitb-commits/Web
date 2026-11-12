@@ -15,20 +15,17 @@ class Database
     private function __construct()
     {
     }
-
     public static function getConnection(): PDO
     {
         if (self::$instance !== null) {
             return self::$instance;
         }
-
         $dsn = sprintf(
             'mysql:host=%s;port=%s;dbname=%s;charset=utf8mb4',
             DB_HOST,
             DB_PORT,
             DB_NAME
         );
-
         try {
             self::$instance = new PDO(
                 $dsn,
@@ -41,14 +38,9 @@ class Database
                     PDO::ATTR_TIMEOUT => 10,
                 ]
             );
-
             return self::$instance;
-
         } catch (PDOException $e) {
-            // Chi tiết lỗi chỉ xuất hiện trong log của PHP/Render
             error_log('[GiveTake Database] ' . $e->getMessage());
-
-            // Không tiết lộ thông tin kết nối cho người truy cập
             throw new RuntimeException(
                 'Không thể kết nối cơ sở dữ liệu. Vui lòng thử lại sau.',
                 0,

@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Core\Controller;
 use App\Models\DeliveryModel;
+use App\Models\GhnEventModel;
 use App\Models\DeliveryDemoModel;
 use App\Services\GhnClient;
 use RuntimeException;
@@ -96,6 +97,8 @@ class DeliveryController extends Controller
             'csrfToken' => $_SESSION['delivery_csrf'],
             'demoEnabled' => $demoEnabled,
             'demoState' => $demoState,
+            'ghnEvents' => ($delivery['delivery_method'] ?? '') === 'shipping'
+                ? (new GhnEventModel())->history($this->id(), $uid) : [],
         ]);
     }
 
@@ -438,7 +441,7 @@ class DeliveryController extends Controller
                 throw new RuntimeException('GHN trả trạng thái không hợp lệ.');
             }
 
-            if (!$this->delivery->updateGhnStatus($id, $uid, $code, $ghnStatus)) {
+            if (!(new GhnEventModel())->acceptPolling($id, $code, $ghnStatus)) {
                 throw new RuntimeException('Không lưu được trạng thái GHN.');
             }
             $_SESSION['delivery_notice'] =

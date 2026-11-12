@@ -300,10 +300,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (thisRequest !== requestNumber) return;
 
-            // Cập nhật danh sách sản phẩm.
             productList.innerHTML = data.html;
-
-            // Cập nhật thanh phân trang.
             pagination.innerHTML = data.pagination;
 
             productHeading.innerHTML =

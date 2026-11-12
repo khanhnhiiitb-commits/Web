@@ -76,40 +76,29 @@ class ItemController extends Controller
 }
 
         // Kiểm tra ảnh
-        if (
-            !isset($_FILES['image']) ||
-            $_FILES['image']['error'] !== UPLOAD_ERR_OK
-        ) {
+        if ( !isset($_FILES['image']) ||  $_FILES['image']['error'] !== UPLOAD_ERR_OK ) {
             $_SESSION['error'] = 'Vui lòng chọn ảnh hợp lệ.';
             header('Location: index.php?controller=Item&action=create');
             exit;
         }
-
         $file = $_FILES['image'];
         $maxSize = 5 * 1024 * 1024;
-
         if ($file['size'] > $maxSize) {
             $_SESSION['error'] = 'Ảnh không được vượt quá 5MB.';
             header('Location: index.php?controller=Item&action=create');
             exit;
         }
-
         $imageInfo = getimagesize($file['tmp_name']);
-
         if ($imageInfo === false) {
             $_SESSION['error'] = 'File tải lên không phải ảnh hợp lệ.';
             header('Location: index.php?controller=Item&action=create');
             exit;
         }
-
         $allowedTypes = [
             'image/jpeg' => 'jpg',
             'image/png'  => 'png',
-            'image/webp' => 'webp'
-        ];
-
+            'image/webp' => 'webp'  ];
         $mimeType = $imageInfo['mime'];
-
         if (!isset($allowedTypes[$mimeType])) {
             $_SESSION['error'] = 'Chỉ chấp nhận ảnh JPG, PNG hoặc WEBP.';
             header('Location: index.php?controller=Item&action=create');
@@ -117,8 +106,6 @@ class ItemController extends Controller
         }
 
         $extension = $allowedTypes[$mimeType];
-
-        // Thư mục lưu ảnh: Web/public/uploads/items
         $uploadDir = dirname(__DIR__, 2)
                    . '/public/uploads/items/';
 

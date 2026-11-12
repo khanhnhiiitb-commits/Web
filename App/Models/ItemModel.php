@@ -38,7 +38,6 @@ public function insertItem(array $data): bool
                 :sender_address_detail,
                 'pending_review'
             )";
-
     $stmt = $this->db->prepare($sql);
 
     return $stmt->execute([
@@ -90,34 +89,25 @@ public function searchItems(
             WHERE i.status = 'available'";
 
     $params = [];
-
-    // Tìm kiếm từ khóa
     if ($keyword !== '') {
         $sql .= " AND (
             i.title LIKE :keyword_title
             OR i.description LIKE :keyword_description
             OR i.condition_note LIKE :keyword_condition
         )";
-
         $searchKeyword = '%' . $keyword . '%';
-
         $params[':keyword_title'] = $searchKeyword;
         $params[':keyword_description'] = $searchKeyword;
         $params[':keyword_condition'] = $searchKeyword;
     }
-
-    // Lọc danh mục
     if ($categoryId !== null && $categoryId > 0) {
         $sql .= " AND i.category_id = :category_id";
         $params[':category_id'] = $categoryId;
     }
-
-    // Lọc địa điểm
     if ($location !== '') {
         $sql .= " AND i.pickup_location LIKE :location";
         $params[':location'] = '%' . $location . '%';
     }
-
     $sql .= " ORDER BY i.created_at DESC";
 
     $stmt = $this->db->prepare($sql);
@@ -220,7 +210,6 @@ public function getItemsPaginated(
         $location
     );
 
-    // Đếm tổng số sản phẩm phù hợp.
     $countSql = "SELECT COUNT(*)
                  FROM items i
                  $where";
@@ -246,10 +235,8 @@ public function getItemsPaginated(
     foreach ($params as $key => $value) {
         $stmt->bindValue($key, $value);
     }
-
     $stmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
     $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
-
     $stmt->execute();
 
     return [

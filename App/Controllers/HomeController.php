@@ -25,7 +25,7 @@ public function index()
     $location = trim($_GET['location'] ?? '');
 
     $page = max(1, (int) ($_GET['page'] ?? 1));
-    $perPage = 8;
+    $perPage = 6;
 
     $result = $this->itemModel->getItemsPaginated(
         $keyword,
@@ -34,14 +34,10 @@ public function index()
         $page,
         $perPage
     );
-
     $totalItems = $result['total'];
     $totalPages = (int) ceil($totalItems / $perPage);
-
-    // Nếu trang được yêu cầu vượt quá số trang hiện có.
     if ($totalPages > 0 && $page > $totalPages) {
         $page = $totalPages;
-
         $result = $this->itemModel->getItemsPaginated(
             $keyword,
             $categoryId,
@@ -81,7 +77,7 @@ public function searchAjax()
         $location = trim($_GET['location'] ?? '');
 
         $page = max(1, (int) ($_GET['page'] ?? 1));
-        $perPage = 8;
+        $perPage = 6;
 
         $result = $this->itemModel->getItemsPaginated(
             $keyword,
@@ -108,12 +104,10 @@ public function searchAjax()
 
         $items = $result['items'];
 
-        // Render danh sách sản phẩm.
         ob_start();
         require __DIR__ . '/../Views/home/_item_list.php';
         $html = ob_get_clean();
 
-        // Render thanh phân trang.
         ob_start();
         require __DIR__ . '/../Views/home/_pagination.php';
         $paginationHtml = ob_get_clean();

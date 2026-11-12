@@ -71,28 +71,34 @@
                 border-radius: 16px;
                 margin-bottom: 15px;
             }
-            .top-header { flex-direction: column; gap: 10px; padding: 15px !important; }
-            .top-header .position-relative { max-width: 100% !important; width: 100% !important; }
+            
+            /* Sửa lỗi hiển thị Collapse trên mobile */
+            .sidebar.collapse:not(.show) {
+                display: none !important;
+            }
+            .sidebar.collapse.show {
+                display: flex !important;
+            }
+            
+           
             .main-content { padding: 10px !important; }
             
-            /* --- BẢN VÁ LỖI CỠ CHỮ & CỤM NÚT TRÊN ĐIỆN THOẠI --- */
+           
             
-            /* 1. Thu nhỏ các tiêu đề và nhãn */
+           
             .main-content h2, .main-content .h2 { font-size: 1.4rem !important; margin-bottom: 10px !important; line-height: 1.4; }
             .main-content .text-muted { font-size: 0.9rem !important; }
             .main-content .badge { display: inline-block; white-space: normal; margin-top: 5px; line-height: 1.4; }
             
-            /* 2. Thu nhỏ cỡ chữ thống kê trong các thẻ Card */
+           
             .card h3, .card .display-6, .card .fs-1 { font-size: 1.7rem !important; }
             
-            /* 3. Ép cụm "Tiêu đề" và "Các nút" tự động rớt xuống thành chiều dọc thay vì đè nhau ngang màn hình */
             .main-content .container-fluid > .d-flex {
                 flex-direction: column !important;
                 align-items: flex-start !important;
                 gap: 15px !important;
             }
             
-            /* 4. Bung khối chứa nút bấm tràn 100% màn hình điện thoại */
             .main-content .container-fluid > .d-flex > div:last-child {
                 width: 100% !important;
                 display: flex;
@@ -100,19 +106,24 @@
                 gap: 10px;
             }
             
-            /* 5. Ép 3 nút "Hôm nay, 7 ngày, Tháng này" dàn đều nhau, không bị móp méo */
-            .main-content .btn-group {
+          .main-content .btn-group {
                 display: flex !important;
                 width: 100% !important;
+                justify-content: space-between; 
             }
             .main-content .btn-group .btn {
-                flex: 1; /* Chia đều không gian */
-                font-size: 0.75rem !important;
-                padding: 8px 0 !important;
+                flex: 1; 
+                font-size: 0.8rem !important;
+                padding: 10px 5px !important; 
+                text-align: center !important; 
                 white-space: nowrap !important;
+                display: flex; 
+                align-items: center; 
+                justify-content: center;
+                border-radius: 8px !important; 
             }
             
-            /* 6. Nút Xuất Excel to bự nằm riêng một hàng cho dễ bấm */
+            /* 6. Nút Xuất Excel*/
             .main-content a.btn-success {
                 width: 100%;
                 display: block;
@@ -128,18 +139,19 @@
 
     <div class="d-flex flex-column flex-lg-row">
         
-        <!-- HEADER MOBILE: NÚT HAMBURGER -->
+        <!-- HEADER MOBILE: NÚT HAMBURGER (Đã sửa data-bs-target chuẩn) -->
         <div class="d-flex d-lg-none justify-content-between align-items-center p-3 m-2 bg-white rounded-4 shadow-sm">
             <div class="fs-4 fw-bold text-success d-flex align-items-center">
                 <i class="bi bi-recycle me-2"></i> Give & Take
             </div>
-            <button class="btn btn-outline-success border-0 p-1" type="button" data-bs-toggle="collapse" data-bs-target="#adminSidebar" aria-expanded="false">
-                <i class="bi bi-list fs-2"></i>
+            <!-- Đổi sang style nút màu xanh đậm với icon list -->
+            <button class="btn btn-success border-0 p-1 rounded-3" type="button" data-bs-toggle="collapse" data-bs-target="#adminSidebarMobile" aria-expanded="false" aria-controls="adminSidebarMobile">
+                <i class="bi bi-list fs-2 text-white px-1"></i>
             </button>
         </div>
 
-        <!-- SIDEBAR -->
-        <aside class="sidebar p-3 d-flex flex-column collapse d-lg-flex mx-2 mx-lg-0 mt-0 mt-lg-0" id="adminSidebar">
+        <!-- SIDEBAR (Đã thêm class collapse và id đồng bộ với nút Hamburger) -->
+        <aside class="sidebar p-3 flex-column collapse d-lg-flex mx-2 mx-lg-0 mt-0 mt-lg-0" id="adminSidebarMobile">
             <!-- LOGO DESKTOP -->
             <div class="d-none d-lg-flex fs-4 fw-bold text-success mb-4 text-center mt-2 justify-content-center align-items-center">
                 <i class="bi bi-recycle me-2" style="font-size: 1.2rem;"></i> Give & Take
@@ -185,13 +197,13 @@
                 </div>
             </header>
 
-            <!-- Nội dung động (tiêu đề, biểu đồ, nút bấm...) -->
+            <!-- Nội dung động -->
             <?php echo $content ?? ''; ?>
 
         </main>
     </div>
     
-    <!-- Script Bootstrap -->
+    <!-- JS của Bootstrap cực kỳ quan trọng để Nút Hamburger hoạt động -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

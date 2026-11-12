@@ -1,4 +1,3 @@
-
 <?php
 if (!function_exists('e')) {
     function e($value): string

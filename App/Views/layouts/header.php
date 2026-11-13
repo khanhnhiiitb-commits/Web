@@ -9,14 +9,13 @@ if ($isLoggedIn) {
     try {
         $unreadNotifications = (new \App\Models\NotificationModel())->countUnread((int)$_SESSION['user_id']);
     } catch (\Throwable $e) {
-        // Không làm hỏng toàn bộ giao diện nếu database chưa cài Routine.
         error_log('Notification routine: ' . $e->getMessage());
     }
 }
 ?>
 
-<nav class="navbar navbar-expand-lg navbar-dark shadow-sm">
-    <div class="container">
+<nav class="navbar navbar-expand-xl navbar-light gt-navbar">
+    <div class="container-fluid gt-nav-container px-3 px-xl-4">
 
         <!-- Logo -->
         <a class="navbar-brand" href="index.php">
@@ -39,7 +38,7 @@ if ($isLoggedIn) {
         <div class="collapse navbar-collapse" id="navbarMenu">
 
             <!-- Menu bên trái -->
-            <ul class="navbar-nav me-auto ms-lg-4">
+            <ul class="navbar-nav gt-main-nav me-auto ms-xl-4">
 
                 <li class="nav-item">
                     <a class="nav-link" href="index.php">
@@ -71,29 +70,15 @@ if ($isLoggedIn) {
                 </li>
                 <?php endif; ?>
 
-                <?php if ($isLoggedIn): ?>
-
-                    <li class="nav-item">
-                        <a class="nav-link fw-semibold"
-                           href="index.php?controller=Request&action=myRequests">
-
-                            <i class="bi bi-bag-check-fill me-1"></i>
-                            Đồ đã đăng ký nhận
-
-                        </a>
-                    </li>
-                    
-                <?php endif; ?>
-
             </ul>
 
             <!-- Menu bên phải -->
-            <div class="d-flex align-items-center gap-2 flex-wrap">
+            <div class="gt-nav-actions d-flex align-items-xl-center gap-2">
 
                 <?php if ($isLoggedIn): ?>
 
                     <a href="index.php?controller=Notification&amp;action=index"
-                       class="btn btn-outline-light btn-sm" title="Thông báo">
+                       class="btn btn-outline-light btn-sm gt-nav-notification" title="Thông báo">
                         <i class="bi bi-bell"></i> Thông báo
                         <?php if ($unreadNotifications > 0): ?>
                             <span class="badge text-bg-warning"><?= $unreadNotifications ?></span>
@@ -102,7 +87,7 @@ if ($isLoggedIn) {
 
                     <!-- Đăng đồ tặng -->
                     <a href="index.php?controller=Item&action=create"
-                       class="btn btn-warning btn-sm fw-bold">
+                       class="btn btn-warning btn-sm fw-bold gt-nav-post">
 
                         <i class="bi bi-gift-fill me-1"></i>
                         Đăng đồ tặng
@@ -112,14 +97,14 @@ if ($isLoggedIn) {
                     <!-- Dropdown tài khoản -->
                     <div class="dropdown">
 
-                        <button class="btn btn-outline-light btn-sm dropdown-toggle"
+                        <button class="btn btn-outline-light btn-sm dropdown-toggle gt-account-btn"
                                 type="button"
                                 data-bs-toggle="dropdown"
                                 aria-expanded="false">
 
                             <i class="bi bi-person-circle me-1"></i>
 
-                            <?= htmlspecialchars($username, ENT_QUOTES, 'UTF-8') ?>
+                            <span class="gt-account-name"><?= htmlspecialchars($username, ENT_QUOTES, 'UTF-8') ?></span>
 
                         </button>
 

@@ -60,8 +60,8 @@ $location = trim((string)($location ?? ''));
             <input type="hidden" name="controller" value="Home">
             <input type="hidden" name="action" value="index">
 
-            <div class="row g-2">
-                <div class="col-md-5">
+            <div class="row g-2 gt-search-row">
+                <div class="col-lg-5 col-md-6">
                     <input type="text"
                            name="keyword"
                            id="keyword"
@@ -70,7 +70,7 @@ $location = trim((string)($location ?? ''));
                            value="<?= e($keyword) ?>">
                 </div>
 
-                <div class="col-md-3">
+                <div class="col-lg-3 col-md-6">
                     <select name="category_id"
                             id="category_id"
                             class="form-select form-select-lg">
@@ -86,7 +86,7 @@ $location = trim((string)($location ?? ''));
                     </select>
                 </div>
 
-                <div class="col-md-2">
+                <div class="col-lg-2 col-md-6">
                     <input type="text"
                            name="location"
                            id="location"
@@ -95,7 +95,7 @@ $location = trim((string)($location ?? ''));
                            value="<?= e($location) ?>">
                 </div>
 
-                <div class="col-md-2">
+                <div class="col-lg-2 col-md-6">
                     <button type="submit"
                             id="searchButton"
                             class="btn btn-green btn-lg w-100">
@@ -123,7 +123,7 @@ $location = trim((string)($location ?? ''));
 
         <?php if (!empty($categories)): ?>
             <?php foreach ($categories as $category): ?>
-                <div class="col-6 col-lg-3">
+                <div class="col-6 col-md-4 col-xl-3">
                     <a class="text-decoration-none text-dark"
                        href="index.php?controller=Home&action=index&category_id=<?= e($category['id']) ?>">
                         <div class="category-card">

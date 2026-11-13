@@ -174,3 +174,58 @@ details[open] summary{margin-bottom:.75rem}
 .gt-home-page #products .gt-product-media.gt-no-image .gt-image-fallback { display: flex !important; }
 @media(max-width: 767.98px) { .gt-home-page #products .gt-product-media { height: 195px; } }
 
+
+
+/* =====================================================
+   Give & Take — Navbar + homepage layout polish
+   Added after original theme to avoid backend changes.
+   ===================================================== */
+.main-content{min-height:72vh;padding-bottom:36px}
+.gt-navbar{position:relative;z-index:1030;padding:10px 0!important}
+.gt-nav-container{max-width:1480px;margin:0 auto;gap:16px;flex-wrap:nowrap}
+.gt-navbar .navbar-brand{flex:none;white-space:nowrap;margin-right:10px}
+.gt-navbar .navbar-collapse{min-width:0}
+.gt-navbar .gt-main-nav{gap:2px;align-items:center;flex-wrap:nowrap}
+.gt-navbar .gt-main-nav .nav-link{white-space:nowrap;font-size:.89rem;line-height:1.3;padding:10px 10px!important;margin:0!important}
+.gt-navbar .gt-nav-actions{flex:none;flex-wrap:nowrap;justify-content:flex-end}
+.gt-navbar .gt-nav-actions>.btn,.gt-navbar .gt-nav-actions .dropdown>.btn{min-height:39px;padding:8px 12px;white-space:nowrap;font-size:.82rem}
+.gt-navbar .gt-account-btn{display:inline-flex;align-items:center;gap:4px;max-width:168px}
+.gt-navbar .gt-account-name{display:inline-block;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle}
+.gt-navbar .dropdown-menu{z-index:1060;max-height:70vh;overflow-y:auto}
+.gt-home-page .gt-hero{padding:46px 20px 48px!important;border-radius:0 0 26px 26px!important}
+.gt-home-page .gt-eyebrow{margin-bottom:10px;font-size:.84rem}
+.gt-home-page .gt-hero h1{max-width:790px;font-size:clamp(2rem,3.25vw,2.85rem)!important;line-height:1.18!important}
+.gt-home-page .gt-hero p{margin:12px auto 20px!important;font-size:.95rem}
+.gt-home-page .search-box{max-width:1050px;padding:10px!important;border-radius:17px!important}
+.gt-home-page .search-box .form-control,
+.gt-home-page .search-box .form-select,
+.gt-home-page .search-box .btn{min-height:46px;font-size:.91rem}
+.gt-home-page .gt-home-section{padding-top:36px!important}
+.gt-home-page #categories .category-card{height:122px!important;min-height:122px!important;padding:13px 10px!important}
+.gt-home-page #categories .gt-category-icon{width:46px;height:46px;flex-basis:46px;border-radius:14px}
+.gt-home-page #categories .gt-category-icon i{font-size:23px!important}
+.gt-home-page #categories .category-card h6{margin-top:10px!important;font-size:.91rem!important}
+.gt-home-page #products{padding-top:38px!important}
+.gt-home-page #categories .mb-4{margin-bottom:18px!important}
+.gt-home-page .section-title{font-size:clamp(1.3rem,2vw,1.65rem)}
+@media(max-width:1199.98px){
+ .gt-nav-container{flex-wrap:wrap}
+ .gt-navbar .navbar-collapse{flex-basis:100%;width:100%;padding:12px 0 4px;border-top:1px solid var(--gt-border);margin-top:8px}
+ .gt-navbar .gt-main-nav{align-items:stretch;flex-wrap:wrap;gap:3px}
+ .gt-navbar .gt-nav-actions{flex-wrap:wrap;justify-content:flex-start;margin-top:12px}
+ .gt-navbar .gt-account-btn{max-width:240px}
+ .gt-navbar .gt-account-name{max-width:175px}
+}
+@media(max-width:767.98px){
+ .gt-home-page .gt-hero{padding:34px 14px 35px!important}
+ .gt-home-page .gt-hero h1{font-size:clamp(1.8rem,6.5vw,2.2rem)!important}
+ .gt-home-page .gt-hero p{font-size:.86rem}
+ .gt-home-page .gt-home-section{padding-top:28px!important}
+ .gt-home-page #categories .category-card{height:116px!important;min-height:116px!important}
+ .gt-home-page #products{padding-top:32px!important}
+}
+@media(max-width:575.98px){
+ .gt-home-page .search-box .gt-search-row>div{width:100%}
+ .gt-home-page .search-box .form-control,.gt-home-page .search-box .form-select,.gt-home-page .search-box .btn{min-height:44px}
+ .gt-navbar .gt-nav-actions{gap:8px}
+}

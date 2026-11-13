@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-    <link rel="stylesheet" href="public/css/style.css?v=layout-20261113">
+    <link rel="stylesheet" href="public/style.css?v=layout-20261113">
 </head>
 <body>
     <?php require __DIR__ . '/header.php'; ?>

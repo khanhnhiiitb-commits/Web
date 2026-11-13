@@ -59,6 +59,7 @@ class DeliveryController extends Controller
         }
     }
 
+    // [DEMO] Phải bật tường minh, chạy localhost VÀ đúng gateway GHN Staging.
     private function demoEnabled(): bool
     {
         $cfg = require __DIR__ . '/../Config/ghn.php';
@@ -293,13 +294,15 @@ class DeliveryController extends Controller
             if ((int)($configuredShop['status'] ?? 0) !== 1) {
                 throw new RuntimeException('Shop GHN chưa hoạt động. Kiểm tra trên GHN Developer.');
             }
+            // Cho phép thử địa chỉ gửi/trả hàng riêng trên từng vận đơn.
+            // Chỉ kiểm tra ShopId/Token và trạng thái shop ở preflight; việc thiếu
+            // district_id/ward_code của shop KHÔNG tự động phủ định payload ghi đè.
+            // GHN vẫn có thể từ chối tạo đơn nếu backend cần kho mặc định.
             $hasLegacyAddress = (int)($configuredShop['district_id'] ?? 0) > 0
                 && trim((string)($configuredShop['ward_code'] ?? '')) !== '';
             if (!$hasLegacyAddress) {
-                throw new RuntimeException(
-                    'Shop GHN chưa có mã quận/huyện và phường/xã lấy hàng hợp lệ ' .
-                    '(district_id/ward_code). Cập nhật kho/shop GHN Staging trước khi tạo vận đơn.'
-                );
+                error_log('GHN shop preflight request=' . $id .
+                    ': shop legacy pickup address missing; attempting explicit from/return overrides');
             }
         } catch (Throwable $e) {
             error_log('GHN shop preflight request=' . $id . ': ' . $e->getMessage());
@@ -367,6 +370,17 @@ class DeliveryController extends Controller
                 'from_ward_name' => $fromWard,
                 'from_district_name' => $fromDistrict,
                 'from_province_name' => $fromProvince,
+                // GHN hiện hỗ trợ ghi đè địa chỉ trả hàng theo từng vận đơn.
+                // Dùng cùng địa chỉ với người tặng, không phụ thuộc địa chỉ trả mặc định của shop.
+                'return_name' => (string)$row['from_name'],
+                'return_phone' => preg_replace('/\s+/', '', (string)$row['from_phone']),
+                'return_address' => implode(', ', [(string)$row['sender_address_detail'], $fromWard, $fromDistrict, $fromProvince]),
+                'return_ward_name' => $fromWard,
+                'return_district_name' => $fromDistrict,
+                'return_province_name' => $fromProvince,
+                'is_new_from_address' => false,
+                'is_new_return_address' => false,
+                'is_new_to_address' => false,
                 'to_name' => (string)$row['to_name'],
                 'to_phone' => preg_replace('/\s+/', '', (string)$row['to_phone']),
                 'to_address' => implode(', ', [(string)$row['shipping_address'], $toWard, $toDistrict, $toProvince]),

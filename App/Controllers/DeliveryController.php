@@ -59,7 +59,6 @@ class DeliveryController extends Controller
         }
     }
 
-    // [DEMO] Phải bật tường minh, chạy localhost VÀ đúng gateway GHN Staging.
     private function demoEnabled(): bool
     {
         $cfg = require __DIR__ . '/../Config/ghn.php';
@@ -272,6 +271,41 @@ class DeliveryController extends Controller
             $this->reject('Chức năng demo chỉ được phép gọi GHN Staging.', 403);
         }
         if ((int)($config['shop_id'] ?? 0) <= 0) $this->reject('Chưa cấu hình GHN_SHOP_ID.', 422);
+
+        // Kiểm tra cấu hình shop/kho trước khi claim: lỗi cấu hình không được chuyển sang needs_review.
+        // GHN có thể vẫn yêu cầu thông tin kho mặc định dù payload ghi đè địa chỉ người gửi.
+        try {
+            $shopResult = (new GhnClient())->getShops();
+            $shopList = $shopResult['data']['shops'] ?? null;
+            if (!is_array($shopList)) {
+                throw new RuntimeException('GHN không trả về danh sách shop hợp lệ.');
+            }
+            $configuredShop = null;
+            foreach ($shopList as $shop) {
+                if (is_array($shop) && (int)($shop['_id'] ?? 0) === (int)$config['shop_id']) {
+                    $configuredShop = $shop;
+                    break;
+                }
+            }
+            if ($configuredShop === null) {
+                throw new RuntimeException('GHN_SHOP_ID không thuộc danh sách shop của GHN_TOKEN.');
+            }
+            if ((int)($configuredShop['status'] ?? 0) !== 1) {
+                throw new RuntimeException('Shop GHN chưa hoạt động. Kiểm tra trên GHN Developer.');
+            }
+            $hasLegacyAddress = (int)($configuredShop['district_id'] ?? 0) > 0
+                && trim((string)($configuredShop['ward_code'] ?? '')) !== '';
+            if (!$hasLegacyAddress) {
+                throw new RuntimeException(
+                    'Shop GHN chưa có mã quận/huyện và phường/xã lấy hàng hợp lệ ' .
+                    '(district_id/ward_code). Cập nhật kho/shop GHN Staging trước khi tạo vận đơn.'
+                );
+            }
+        } catch (Throwable $e) {
+            error_log('GHN shop preflight request=' . $id . ': ' . $e->getMessage());
+            $_SESSION['delivery_notice'] = 'Chưa thể tạo vận đơn: ' . $e->getMessage();
+            $this->redirectToTracking($id);
+        }
 
         // Claim trong DB để tránh hai request đồng thời tạo trùng.
         $row = $this->delivery->claimShipment($id, $uid);

@@ -91,28 +91,14 @@ class RequestModel
                 return false;
             }
 
-            $stmt = $this->db->prepare(
-                "UPDATE item_requests SET status = 'accepted'
-                 WHERE id = :request_id AND item_id = :item_id AND status = 'pending'"
-            );
-            $stmt->execute([':request_id' => $requestId, ':item_id' => $itemId]);
-            if ($stmt->rowCount() !== 1) {
-                $this->db->rollBack();
-                return false;
-            }
-
-            $stmt = $this->db->prepare(
-                "UPDATE item_requests SET status = 'rejected'
-                 WHERE item_id = :item_id AND id <> :request_id AND status = 'pending'"
-            );
-            $stmt->execute([':item_id' => $itemId, ':request_id' => $requestId]);
-            $stmt = $this->db->prepare(
-                "UPDATE items SET status = 'reserved' WHERE id = :item_id AND status = 'available'"
-            );
-            $stmt->execute([':item_id' => $itemId]);
-            if ($stmt->rowCount() !== 1) {
-                $this->db->rollBack();
-                return false;
+            // Chủ sở hữu đã được kiểm tra và item đang khóa (FOR UPDATE).
+            // Routine kiểm tra lại trạng thái, xử lý các request khác,
+            // chuyển items => reserved và thông báo trong CÙNG transaction.
+            $stmt = $this->db->prepare('CALL lthn_approve_item_request(?, ?)');
+            try {
+                $stmt->execute([(int)$requestId, (int)$userId]);
+            } finally {
+                $stmt->closeCursor();
             }
 
             $this->db->commit();
@@ -188,15 +174,13 @@ class RequestModel
                 return false;
             }
 
-            $stmt = $this->db->prepare(
-                "INSERT INTO item_requests (item_id, requester_id, message, status, created_at)
-                 VALUES (:item_id, :requester_id, :message, 'pending', NOW())"
-            );
-            $stmt->execute([
-                ':item_id'      => $itemId,
-                ':requester_id' => $requesterId,
-                ':message'      => $message
-            ]);
+            // Lệnh CALL tạo yêu cầu đồng thời thông báo chủ món đồ.
+            $stmt = $this->db->prepare('CALL lthn_send_item_request(?, ?, ?)');
+            try {
+                $stmt->execute([$itemId, $requesterId, $message]);
+            } finally {
+                $stmt->closeCursor();
+            }
 
             $this->db->commit();
             return true;

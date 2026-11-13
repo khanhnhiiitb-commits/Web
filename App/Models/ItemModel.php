@@ -11,49 +11,21 @@ class ItemModel extends Model
     
 public function insertItem(array $data): bool
 {
-    $sql = "INSERT INTO items (
-                user_id,
-                category_id,
-                title,
-                description,
-                condition_note,
-                image_url,
-                pickup_location,
-                ghn_province_id,
-                ghn_district_id,
-                ghn_ward_code,
-                sender_address_detail,
-                status
-            ) VALUES (
-                :user_id,
-                :category_id,
-                :title,
-                :description,
-                :condition_note,
-                :image_url,
-                :pickup_location,
-                :ghn_province_id,
-                :ghn_district_id,
-                :ghn_ward_code,
-                :sender_address_detail,
-                'pending_review'
-            )";
+    $sql = 'CALL tkn_create_item(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
     $stmt = $this->db->prepare($sql);
-
-    return $stmt->execute([
-        ':user_id'               => $data['user_id'],
-        ':category_id'           => $data['category_id'],
-        ':title'                 => $data['title'],
-        ':description'           => $data['description'],
-        ':condition_note'        => $data['condition_note'],
-        ':image_url'             => $data['image_url'],
-        ':pickup_location'       => $data['pickup_location'],
-        ':ghn_province_id'       => $data['ghn_province_id'],
-        ':ghn_district_id'       => $data['ghn_district_id'],
-        ':ghn_ward_code'         => $data['ghn_ward_code'],
-        ':sender_address_detail' => $data['sender_address_detail']
-    ]);
+    try {
+        return $stmt->execute([
+            $data['user_id'], $data['category_id'], $data['title'],
+            $data['description'], $data['condition_note'], $data['image_url'],
+            $data['pickup_location'], $data['ghn_province_id'],
+            $data['ghn_district_id'], $data['ghn_ward_code'],
+            $data['sender_address_detail']
+        ]);
+    } finally {
+        $stmt->closeCursor();
+    }
 }
+
 
 
     // Lấy danh sách món đồ đang chia sẻ
@@ -123,7 +95,8 @@ public function searchItems(
     $sql = "SELECT
                 i.*,
                 c.name AS category_name,
-                u.full_name AS owner_name
+                u.full_name AS owner_name,
+                lthn_get_donor_avg_rating(i.user_id) AS donor_avg_rating
             FROM items i
             INNER JOIN categories c ON i.category_id = c.id
             INNER JOIN users u ON i.user_id = u.id
@@ -218,31 +191,15 @@ public function getItemsPaginated(
     $countStmt->execute($params);
     $totalItems = (int) $countStmt->fetchColumn();
 
-    // Lấy sản phẩm của trang hiện tại.
-    $sql = "SELECT
-                i.*,
-                c.name AS category_name,
-                u.full_name AS owner_name
-            FROM items i
-            INNER JOIN categories c ON i.category_id = c.id
-            INNER JOIN users u ON i.user_id = u.id
-            $where
-            ORDER BY i.created_at DESC
-            LIMIT :limit OFFSET :offset";
-
-    $stmt = $this->db->prepare($sql);
-
-    foreach ($params as $key => $value) {
-        $stmt->bindValue($key, $value);
+    // Truy vấn dữ liệu được thực hiện bằng Stored Procedure; giữ count để phân trang.
+    $stmt = $this->db->prepare('CALL tkn_filter_items(?, ?, ?, ?, ?)');
+    try {
+        $stmt->execute([$categoryId ?? 0, $keyword, $location, $perPage, $offset]);
+        $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } finally {
+        $stmt->closeCursor();
     }
-    $stmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
-    $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
-    $stmt->execute();
-
-    return [
-        'items' => $stmt->fetchAll(PDO::FETCH_ASSOC),
-        'total' => $totalItems
-    ];
+    return ['items' => $items, 'total' => $totalItems];
 }
 public function updateStatus(int $itemId, string $status): bool
     {

@@ -4,6 +4,15 @@ $isLoggedIn = !empty($_SESSION['user_id']);
 $username = $_SESSION['username']
     ?? $_SESSION['full_name']
     ?? 'Tài khoản';
+$unreadNotifications = 0;
+if ($isLoggedIn) {
+    try {
+        $unreadNotifications = (new \App\Models\NotificationModel())->countUnread((int)$_SESSION['user_id']);
+    } catch (\Throwable $e) {
+        // Không làm hỏng toàn bộ giao diện nếu database chưa cài Routine.
+        error_log('Notification routine: ' . $e->getMessage());
+    }
+}
 ?>
 
 <nav class="navbar navbar-expand-lg navbar-dark shadow-sm">
@@ -50,6 +59,10 @@ $username = $_SESSION['username']
                     </a>
                 </li>
 
+                <li class="nav-item">
+                    <a class="nav-link" href="index.php?controller=Post&amp;action=index">Cộng đồng</a>
+                </li>
+
                 <?php if ($isLoggedIn && ($_SESSION['role'] ?? '') === 'admin'): ?>
                 <li class="nav-item">
                     <a class="nav-link" href="index.php?controller=Admin&amp;action=dashboard">
@@ -78,6 +91,14 @@ $username = $_SESSION['username']
             <div class="d-flex align-items-center gap-2 flex-wrap">
 
                 <?php if ($isLoggedIn): ?>
+
+                    <a href="index.php?controller=Notification&amp;action=index"
+                       class="btn btn-outline-light btn-sm" title="Thông báo">
+                        <i class="bi bi-bell"></i> Thông báo
+                        <?php if ($unreadNotifications > 0): ?>
+                            <span class="badge text-bg-warning"><?= $unreadNotifications ?></span>
+                        <?php endif; ?>
+                    </a>
 
                     <!-- Đăng đồ tặng -->
                     <a href="index.php?controller=Item&action=create"

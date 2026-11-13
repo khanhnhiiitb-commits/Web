@@ -29,20 +29,27 @@ class UserModel extends Model
             PASSWORD_DEFAULT
         );
 
-        $sql = "INSERT INTO users
-                (full_name, email, password_hash, phone, address, role, status)
-                VALUES
-                (:full_name, :email, :password_hash, :phone, :address, 'member', 1)";
-
-        $stmt = $this->db->prepare($sql);
-
-        return $stmt->execute([
-            ':full_name' => $data['full_name'],
-            ':email' => strtolower(trim($data['email'])),
-            ':password_hash' => $hash,
-            ':phone' => $data['phone'] ?? null,
-            ':address' => $data['address'] ?? null
-        ]);
+        $this->db->beginTransaction();
+        try {
+            $stmt = $this->db->prepare("CALL nttd_sp_register_user(?, ?, ?, ?, ?)");
+            try {
+                $created = $stmt->execute([
+                    $data['full_name'], strtolower(trim($data['email'])), $hash,
+                    $data['phone'] ?? null, $data['address'] ?? null
+                ]);
+            } finally {
+                $stmt->closeCursor();
+            }
+            if (!$created) {
+                $this->db->rollBack();
+                return false;
+            }
+            $this->db->commit();
+            return true;
+        } catch (\Throwable $e) {
+            if ($this->db->inTransaction()) $this->db->rollBack();
+            throw $e;
+        }
     }
     // Tìm tài khoản theo ID
     public function findById($id)
@@ -104,18 +111,34 @@ class UserModel extends Model
     }
 
     // Khóa hoặc mở khóa tài khoản
-    public function updateStatus($id, $status)
+    public function updateStatus($id, $status): bool
     {
-        $sql = "UPDATE users
-                SET status = :status
-                WHERE id = :id";
-
-        $stmt = $this->db->prepare($sql);
-
-        return $stmt->execute([
-            ':status' => $status,
-            ':id' => $id
-        ]);
+        if ((int)$id <= 0 || !in_array((int)$status, [0, 1], true)) {
+            return false;
+        }
+        // Chuyển việc cập nhật trạng thái + thông báo vào 1 transaction.
+        $this->db->beginTransaction();
+        try {
+            $stmt = $this->db->prepare('SELECT id, status FROM users WHERE id = ? FOR UPDATE');
+            $stmt->execute([(int)$id]);
+            $old = $stmt->fetch(PDO::FETCH_ASSOC);
+            $stmt->closeCursor();
+            if (!$old || (int)$old['status'] === (int)$status) {
+                $this->db->rollBack();
+                return false;
+            }
+            $stmt = $this->db->prepare('CALL nttd_sp_toggle_user_status(?, ?)');
+            try {
+                $stmt->execute([(int)$id, (int)$status]);
+            } finally {
+                $stmt->closeCursor();
+            }
+            $this->db->commit();
+            return true;
+        } catch (\Throwable $e) {
+            if ($this->db->inTransaction()) $this->db->rollBack();
+            throw $e;
+        }
     }
     
 }

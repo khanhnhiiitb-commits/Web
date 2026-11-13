@@ -119,6 +119,10 @@
                     <i class="bi bi-arrow-left-right me-3 fs-5"></i> <span style="margin-left: 2px;">Lịch sử giao dịch</span>
                 </a>
          
+                <a href="index.php?controller=Dispute&action=admin" class="nav-link px-3 py-2 mb-1 d-flex align-items-center <?= (($_GET['controller'] ?? '') === 'Dispute') ? 'active' : '' ?>">
+                    <i class="bi bi-shield-exclamation me-3 fs-5"></i><span style="margin-left: 2px;">Quản lý khiếu nại</span>
+                </a>
+
                 <hr class="text-secondary my-3 mx-3 opacity-25">
                 
                 <a href="index.php?controller=Auth&action=logout" class="nav-link text-danger fw-bold px-3 py-2 mb-1 d-flex align-items-center" onclick="return confirm('Bạn có muốn đăng xuất không?');">

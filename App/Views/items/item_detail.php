@@ -164,51 +164,35 @@ $isLoggedIn = !empty($_SESSION['user_id']);
 
                     <!-- Khu vực hành động -->
                     <div class="mt-4">
-
                         <?php if ($isOwner): ?>
-
                             <div class="alert alert-info mb-0">
-                                <i class="bi bi-info-circle me-1"></i>
-                                Đây là món đồ bạn đã đăng chia sẻ.
-                            </div>
-
+                                <i class="bi bi-info-circle me-1"></i> Đây là món đồ bạn đã đăng chia sẻ. </div>
                         <?php elseif ($canReceive): ?>
-
-                            <!-- Form đăng ký nhận đồ -->
                             <form action="index.php?controller=Item&action=requestItem" method="POST">
-                                <input type="hidden" name="item_id" value="<?= (int) $item['id'] ?>">
-                                
+                                <input type="hidden" name="item_id" value="<?= (int) $item['id'] ?>">                               
                                 <div class="mb-3">
-                                    <label for="message" class="form-label small fw-semibold text-muted">Lời nhắn gửi chủ món đồ (tùy chọn):</label>
-                                    <textarea class="form-control form-control-sm" id="message" name="message" rows="2" placeholder="Ví dụ: Mình rất cần món đồ này cho học tập, bạn cho mình xin nhé..."></textarea>
+                                    <label for="message" class="form-label small fw-semibold text-muted">
+                                        Lời nhắn gửi chủ món đồ (tùy chọn):</label>
+                                    <textarea class="form-control form-control-sm" id="message" name="message" rows="2" 
+                                    placeholder="Ví dụ: Mình rất cần món đồ này cho học tập, bạn cho mình xin nhé..."></textarea>
                                 </div>
-
                                 <button
                                     type="submit"
                                     class="btn btn-success btn-lg w-100 shadow-sm"
-                                    onclick="return confirm('Bạn chắc chắn muốn đăng ký nhận món đồ này chứ?');"
-                                >
+                                    onclick="return confirm('Bạn chắc chắn muốn đăng ký nhận món đồ này chứ?');"   >
                                     <i class="bi bi-heart-fill me-2"></i>
                                     Đăng ký nhận đồ ngay
                                 </button>
                             </form>
-
                         <?php elseif (!$isLoggedIn && $status === 'available'): ?>
-
                             <a
                                 href="index.php?controller=Auth&action=login"
-                                class="btn btn-success btn-lg w-100"
-                            >
+                                class="btn btn-success btn-lg w-100"   >
                                 <i class="bi bi-box-arrow-in-right me-2"></i>
                                 Đăng nhập để nhận đồ
                             </a>
-
                         <?php else: ?>
-
-                            <div class="alert alert-secondary mb-0">
-                                Món đồ hiện không thể đăng ký nhận.
-                            </div>
-
+                            <div class="alert alert-secondary mb-0"> Món đồ hiện không thể đăng ký nhận. </div>
                         <?php endif; ?>
 
                     </div>

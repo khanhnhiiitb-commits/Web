@@ -197,8 +197,6 @@ class ItemController extends Controller
     $isAdmin = ($_SESSION['role'] ?? '') === 'admin';
     $status = $item['status'] ?? '';
 
-    // Chỉ công khai sản phẩm đang available hoặc đã tặng.
-    // Chủ bài đăng và Admin được xem các trạng thái còn lại.
     if (
         !in_array($status, ['available', 'gifted'], true)
         && !$isOwner

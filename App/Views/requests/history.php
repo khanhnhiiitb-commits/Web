@@ -14,7 +14,6 @@ $given    = is_array($given ?? null) ? $given : [];
 $statusMap = [
     'pending'   => ['bg-warning text-dark', 'Đang chờ duyệt'],
     'accepted'  => ['bg-primary',           'Đã chấp nhận, chờ sắp xếp giao nhận'],
-    // [BƯỚC 1 - MỚI] Trạng thái giao nhận
     'arranged' => ['bg-info text-dark', 'Đã sắp xếp giao nhận'],
     'in_progress' => ['bg-info text-dark', 'Đang giao nhận'],
     'awaiting_confirmation' => ['bg-warning text-dark', 'Chờ hai bên xác nhận'],
@@ -46,6 +45,8 @@ $actionForm = function (string $action, int $id, string $label, string $btnClass
         <?php unset($_SESSION['request_message']); ?>
     <?php endif; ?>
 
+    <?php if (!empty($_SESSION['dispute_error'])): ?><div class="alert alert-danger"><?= e($_SESSION['dispute_error']) ?></div><?php unset($_SESSION['dispute_error']); endif; ?>
+    <a class="btn btn-outline-danger mb-3" href="index.php?controller=Dispute&amp;action=index">Khiếu nại của tôi</a>
     <ul class="nav nav-tabs mb-3" role="tablist">
         <li class="nav-item">
             <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-received" type="button">
@@ -93,6 +94,11 @@ $actionForm = function (string $action, int $id, string $label, string $btnClass
                                             <i class="bi bi-chat-dots"></i> Chat
                                         </a>
                                         <?php if (in_array($r['request_status'], ['accepted', 'arranged', 'in_progress', 'awaiting_confirmation'], true)): ?>
+                                            <a class="btn btn-sm btn-outline-danger me-1 mb-1" href="index.php?controller=Dispute&amp;action=create&amp;id=<?= (int)$r['request_id'] ?>">Khiếu nại</a>
+                                        <?php elseif ($r['request_status'] === 'disputed'): ?>
+                                            <a class="btn btn-sm btn-outline-danger me-1 mb-1" href="index.php?controller=Dispute&amp;action=index">Xem khiếu nại</a>
+                                        <?php endif; ?>
+                                        <?php if (in_array($r['request_status'], ['accepted', 'arranged', 'in_progress', 'awaiting_confirmation'], true)): ?>
                                             <a class="btn btn-sm btn-outline-primary me-1 mb-1"
                                                href="index.php?controller=Delivery&amp;action=tracking&amp;id=<?= (int)$r['request_id'] ?>">
                                                 <i class="bi bi-box-seam"></i> Xem giao nhận
@@ -100,7 +106,7 @@ $actionForm = function (string $action, int $id, string $label, string $btnClass
                                         <?php endif; ?>
                                         <?php if ($r['request_status'] === 'pending'): ?>
                                             <?php $actionForm('cancel', (int)$r['request_id'], 'Hủy yêu cầu', 'btn-outline-danger', 'Bạn muốn hủy yêu cầu nhận món đồ này?'); ?>
-                                        <?php elseif ($r['request_status'] === 'awaiting_confirmation'): // [BƯỚC 3A - SỬA] Chỉ xác nhận sau giai đoạn giao nhận ?>
+                                        <?php elseif ($r['request_status'] === 'awaiting_confirmation'):  ?>
                                             <?php if (empty($r['receiver_confirmed_at'])): ?>
                                                 <?php $actionForm('confirmHandover', (int)$r['request_id'], 'Đã nhận được đồ', 'btn-success', 'Xác nhận bạn đã nhận được món đồ này?'); ?>
                                             <?php else: ?>
@@ -150,6 +156,11 @@ $actionForm = function (string $action, int $id, string $label, string $btnClass
                                             <i class="bi bi-chat-dots"></i> Chat
                                         </a>
                                         <?php if (in_array($g['request_status'], ['accepted', 'arranged', 'in_progress', 'awaiting_confirmation'], true)): ?>
+                                            <a class="btn btn-sm btn-outline-danger me-1 mb-1" href="index.php?controller=Dispute&amp;action=create&amp;id=<?= (int)$g['request_id'] ?>">Khiếu nại</a>
+                                        <?php elseif ($g['request_status'] === 'disputed'): ?>
+                                            <a class="btn btn-sm btn-outline-danger me-1 mb-1" href="index.php?controller=Dispute&amp;action=index">Xem khiếu nại</a>
+                                        <?php endif; ?>
+                                        <?php if (in_array($g['request_status'], ['accepted', 'arranged', 'in_progress', 'awaiting_confirmation'], true)): ?>
                                             <a class="btn btn-sm btn-outline-primary me-1 mb-1"
                                                href="index.php?controller=Delivery&amp;action=tracking&amp;id=<?= (int)$g['request_id'] ?>">
                                                 <i class="bi bi-truck"></i>
@@ -159,7 +170,7 @@ $actionForm = function (string $action, int $id, string $label, string $btnClass
                                         <?php if ($g['request_status'] === 'pending'): ?>
                                             <a href="index.php?controller=request&action=manageMyItems"
                                                class="btn btn-sm btn-outline-success">Duyệt yêu cầu</a>
-                                        <?php elseif ($g['request_status'] === 'awaiting_confirmation'): // [BƯỚC 3A - SỬA] Không xác nhận ngay sau khi chấp nhận ?>
+                                        <?php elseif ($g['request_status'] === 'awaiting_confirmation'):  ?>
                                             <?php if (empty($g['giver_confirmed_at'])): ?>
                                                 <?php $actionForm('confirmHandover', (int)$g['request_id'], 'Đã trao đồ', 'btn-success', 'Xác nhận bạn đã trao món đồ này?'); ?>
                                             <?php else: ?>

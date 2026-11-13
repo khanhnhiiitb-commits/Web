@@ -49,7 +49,8 @@ class AdminController extends Controller
         $totalTransactions = (int) $stmt->fetchColumn();
 
       // Đếm tất cả các bài chưa được duyệt 
-        $stmt = $db->prepare("SELECT COUNT(*) FROM items WHERE status != 'available' OR status IS NULL");
+      
+        $stmt = $db->prepare("SELECT COUNT(*) FROM items WHERE status = 'pending_review' OR status = 'pending' OR status IS NULL");
         $stmt->execute();
         $pendingRequests = (int) $stmt->fetchColumn();
 

@@ -276,7 +276,7 @@ class DeliveryController extends Controller
 
         $config = require __DIR__ . '/../Config/ghn.php';
         if (rtrim((string)($config['base_url'] ?? ''), '/') !== 'https://dev-online-gateway.ghn.vn') {
-            $this->reject('Chức năng demo chỉ được phép gọi GHN Staging.', 403);
+            $this->reject('Dịch vụ giao hàng hiện chưa sẵn sàng.', 403);
         }
         if ((int)($config['shop_id'] ?? 0) <= 0) $this->reject('Chưa cấu hình GHN_SHOP_ID.', 422);
 
@@ -474,7 +474,7 @@ class DeliveryController extends Controller
             if (!$this->delivery->finishShipment($id, $uid, $orderCode)) {
                 throw new RuntimeException('GHN đã tạo đơn nhưng lưu mã vào CSDL thất bại. Liên hệ quản trị để đối soát mã ' . $orderCode);
             }
-            $_SESSION['delivery_notice'] = 'Tạo vận đơn GHN Staging thành công: ' . $orderCode;
+            $_SESSION['delivery_notice'] = 'Tạo vận đơn thành công. Mã vận đơn: ' . $orderCode;
         } catch (Throwable $e) {
             $this->delivery->shipmentNeedsReview($id, $uid);
             error_log('GHN createShipment request=' . $id . ': ' . $e->getMessage());
@@ -503,7 +503,7 @@ class DeliveryController extends Controller
             if (!$this->delivery->finishReviewedShipment($id, $uid, $orderCode)) {
                 throw new RuntimeException('Lỗi ghi mã vận đơn vào DB.');
             }
-            $_SESSION['delivery_notice'] = 'Đã đối soát GHN Staging thành công: ' . $orderCode;
+            $_SESSION['delivery_notice'] = 'Đã xác nhận vận đơn thành công: ' . $orderCode;
         } catch (Throwable $e) {
             error_log('GHN reconcileShipment request=' . $id . ': ' . $e->getMessage());
             $_SESSION['delivery_notice'] = 'Chưa đối soát được vận đơn. KHÔNG tạo lại; kiểm tra GHN Developer với mã GNT-' . $id . ' và liên hệ quản trị.';

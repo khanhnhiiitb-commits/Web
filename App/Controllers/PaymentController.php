@@ -67,7 +67,7 @@ final class PaymentController extends Controller
         if (!$allowed) { http_response_code(403); echo 'Không thể hiển thị thông tin thanh toán. Vui lòng đăng nhập và kiểm tra lại.'; return; }
         $id=(int)$p['request_id'];
         $status=$p['status'];
-        $text=$status==='paid' ? 'Đã xác nhận thanh toán thành công.' : ($status==='failed' ? 'Thanh toán không thành công.' : 'Đang chờ VNPAY xác nhận qua IPN, vui lòng kiểm tra lại sau.');
-        echo '<!doctype html><html lang="vi"><meta charset="utf-8"><title>Thanh toán VNPAY</title><main style="font:16px system-ui;max-width:650px;margin:60px auto;padding:24px"><h2>Kết quả VNPAY Sandbox</h2><p>'.htmlspecialchars($text,ENT_QUOTES,'UTF-8').'</p><p>Trạng thái được xác nhận từ máy chủ, không dựa vào URL trả về.</p><a href="index.php?controller=Delivery&amp;action=tracking&amp;id='.$id.'">Trở lại giao nhận</a></main></html>';
+        $text=$status==='paid' ? 'Đã xác nhận thanh toán thành công.' : ($status==='failed' ? 'Thanh toán không thành công.' : 'Đang xác nhận thanh toán, vui lòng kiểm tra lại sau.');
+        echo '<!doctype html><html lang="vi"><meta charset="utf-8"><title>Thanh toán VNPAY</title><main style="font:16px system-ui;max-width:650px;margin:60px auto;padding:24px"><h2>Kết quả thanh toán</h2><p>'.htmlspecialchars($text,ENT_QUOTES,'UTF-8').'</p><p>Trạng thái được xác nhận từ máy chủ, không dựa vào URL trả về.</p><a href="index.php?controller=Delivery&amp;action=tracking&amp;id='.$id.'">Trở lại giao nhận</a></main></html>';
     }
 }

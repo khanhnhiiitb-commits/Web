@@ -92,7 +92,7 @@ $meetingTime = !empty($delivery['meeting_time'])
                             <strong><?= $e($delivery['tracking_number']) ?></strong>
                         </div>
                         <div class="d-flex justify-content-between gap-3 mb-2">
-                            <span class="text-muted">Trạng thái GHN</span>
+                            <span class="text-muted">Trạng thái vận chuyển</span>
                             <span><?= $e($delivery['ghn_status'] ?: 'Chưa đồng bộ') ?></span>
                         </div>
                         <form method="post" action="index.php?controller=Delivery&amp;action=refreshShipmentStatus&amp;id=<?= $id ?>">
@@ -104,7 +104,7 @@ $meetingTime = !empty($delivery['meeting_time'])
                     <?php elseif ($isGiver && in_array((string)($delivery['ghn_status'] ?? ''), ['needs_review', 'creating'], true)): ?>
                         <form method="post" action="index.php?controller=Delivery&amp;action=reconcileShipment&amp;id=<?= $id ?>">
                             <input type="hidden" name="csrf_token" value="<?= $e($csrfToken) ?>">
-                            <button type="submit" class="btn btn-outline-warning btn-sm">Đối soát vận đơn GHN</button>
+                            <button type="submit" class="btn btn-outline-warning btn-sm">Kiểm tra vận đơn</button>
                         </form>
                         <?php if ($isPaid && (string)($delivery['ghn_status'] ?? '') === 'needs_review'): ?>
                             <form method="post" action="index.php?controller=Delivery&amp;action=createShipment&amp;id=<?= $id ?>" class="mt-2">
@@ -290,7 +290,7 @@ $meetingTime = !empty($delivery['meeting_time'])
                     name="shipping_address"
                     maxlength="500"
                     rows="2"
-                    placeholder="Ví dụ: 234 Ba Hạt, số nhà, tên đường..."
+                    placeholder="Ví dụ: 123ABC, số nhà, tên đường..."
                 ><?= $e($delivery['shipping_address']) ?></textarea>
 
                 <div class="row g-3">
@@ -545,13 +545,13 @@ $meetingTime = !empty($delivery['meeting_time'])
 
     <?php if ($method === 'shipping' && !empty($delivery['agreed_at'])): ?>
         <section class="card card-body mb-3">
-            <h5>Thanh toán cước GHN qua VNPAY Sandbox</h5>
+            <h5>Thanh toán phí vận chuyển</h5>
             <p class="mb-1">Bên được chọn chịu phí: <strong><?= (int)($delivery['payment_type_id'] ?? 0) === 1 ? 'Người tặng' : 'Người nhận' ?></strong></p>
             <p class="mb-2">Số tiền: <strong><?= number_format((int)($delivery['shipping_fee_vnd'] ?? 0), 0, ',', '.') ?>đ</strong></p>
             <?php if ($isPaid): ?>
                 <div class="alert alert-success py-2 mb-0">Đã thanh toán VNPAY. Người tặng có thể tạo vận đơn GHN.</div>
             <?php elseif (($payment['status'] ?? '') === 'pending'): ?>
-                <div class="alert alert-warning py-2 mb-0">Đang chờ VNPAY xác nhận. Không tạo thêm lượt thanh toán để tránh thanh toán trùng. Nếu chờ lâu, liên hệ quản trị đối soát.</div>
+                <div class="alert alert-warning py-2 mb-0">Đang xác nhận thanh toán. Không tạo thêm lượt thanh toán để tránh thanh toán trùng. Nếu chờ lâu, liên hệ quản trị đối soát.</div>
             <?php elseif ($canPay): ?>
                 <form method="post" action="index.php?controller=Payment&amp;action=create&amp;id=<?= $id ?>">
                     <input type="hidden" name="csrf_token" value="<?= $e($csrfToken) ?>">
@@ -571,7 +571,7 @@ $meetingTime = !empty($delivery['meeting_time'])
               class="card card-body mb-3"
               onsubmit="return confirm('Bạn xác nhận tạo vận đơn giao hàng cho món đồ này? Vui lòng kiểm tra địa chỉ, số điện thoại và bên trả phí trước khi tiếp tục.');">
             <input type="hidden" name="csrf_token" value="<?= $e($csrfToken) ?>">
-            <h5>Tạo vận đơn GHN Staging</h5>
+            <h5>Tạo vận đơn GHN</h5>
             <p class="small text-muted">Chỉ thực hiện sau khi đã xác nhận đầy đủ thông tin và bên trả phí.</p>
             <button type="submit" class="btn btn-success">Tạo vận đơn GHN</button>
         </form>

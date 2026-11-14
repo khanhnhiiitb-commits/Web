@@ -18,7 +18,13 @@ $canPropose = $isGiver
     && in_array($status, ['accepted', 'arranged'], true)
     && empty($delivery['tracking_number'])
     && empty($delivery['ghn_status']);
-$canCreateShipment = $isGiver && $status === 'arranged'
+$isPaid = ($payment['status'] ?? '') === 'paid';
+$payerId = (int)($delivery['payment_type_id'] ?? 0) === 1 ? (int)$delivery['giver_id'] : (int)$delivery['requester_id'];
+$canPay = $method === 'shipping' && $status === 'arranged' && !empty($delivery['agreed_at'])
+    && (int)$userId === $payerId && !$isPaid
+    && empty($delivery['ghn_status']) && empty($delivery['tracking_number'])
+    && (($payment['status'] ?? '') !== 'pending');
+$canCreateShipment = $isPaid && $isGiver && $status === 'arranged'
     && $method === 'shipping'
     && !empty($delivery['agreed_at'])
     && empty($delivery['tracking_number'])
@@ -100,7 +106,7 @@ $meetingTime = !empty($delivery['meeting_time'])
                             <input type="hidden" name="csrf_token" value="<?= $e($csrfToken) ?>">
                             <button type="submit" class="btn btn-outline-warning btn-sm">Đối soát vận đơn GHN</button>
                         </form>
-                        <?php if ((string)($delivery['ghn_status'] ?? '') === 'needs_review'): ?>
+                        <?php if ($isPaid && (string)($delivery['ghn_status'] ?? '') === 'needs_review'): ?>
                             <form method="post" action="index.php?controller=Delivery&amp;action=createShipment&amp;id=<?= $id ?>" class="mt-2">
                                 <input type="hidden" name="csrf_token" value="<?= $e($csrfToken) ?>">
                                 <input type="hidden" name="retry_shipment" value="1">
@@ -535,6 +541,27 @@ $meetingTime = !empty($delivery['meeting_time'])
             </button>
         </form>
 
+    <?php endif; ?>
+
+    <?php if ($method === 'shipping' && !empty($delivery['agreed_at'])): ?>
+        <section class="card card-body mb-3">
+            <h5>Thanh toán cước GHN qua VNPAY Sandbox</h5>
+            <p class="mb-1">Bên được chọn chịu phí: <strong><?= (int)($delivery['payment_type_id'] ?? 0) === 1 ? 'Người tặng' : 'Người nhận' ?></strong></p>
+            <p class="mb-2">Số tiền: <strong><?= number_format((int)($delivery['shipping_fee_vnd'] ?? 0), 0, ',', '.') ?>đ</strong></p>
+            <?php if ($isPaid): ?>
+                <div class="alert alert-success py-2 mb-0">Đã thanh toán VNPAY. Người tặng có thể tạo vận đơn GHN.</div>
+            <?php elseif (($payment['status'] ?? '') === 'pending'): ?>
+                <div class="alert alert-warning py-2 mb-0">Đang chờ VNPAY xác nhận. Không tạo thêm lượt thanh toán để tránh thanh toán trùng. Nếu chờ lâu, liên hệ quản trị đối soát.</div>
+            <?php elseif ($canPay): ?>
+                <form method="post" action="index.php?controller=Payment&amp;action=create&amp;id=<?= $id ?>">
+                    <input type="hidden" name="csrf_token" value="<?= $e($csrfToken) ?>">
+                    <button class="btn btn-primary" type="submit">Thanh toán phí vận chuyển qua VNPAY</button>
+                </form>
+                <p class="small text-muted mt-2 mb-0">Đây là giao dịch Sandbox. Người trả phí trên website thanh toán trước; phí GHN khi tạo đơn được ghi cho shop/người gửi để tránh thu lại ở người nhận.</p>
+            <?php else: ?>
+                <p class="text-muted small mb-0">Đang chờ bên chịu phí hoàn tất thanh toán.</p>
+            <?php endif; ?>
+        </section>
     <?php endif; ?>
 
     <?php if ($canCreateShipment): ?>

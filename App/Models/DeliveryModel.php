@@ -73,6 +73,16 @@ class DeliveryModel
                 return false;
             }
 
+            // Do not allow changing delivery method/fee/payer after a payment is pending or paid.
+            $paymentLock = $this->db->prepare(
+                "SELECT 1 FROM vnpay_payments WHERE request_id = :id AND status IN ('pending','paid') LIMIT 1"
+            );
+            $paymentLock->execute([':id' => $requestId]);
+            if ($paymentLock->fetchColumn()) {
+                $this->db->rollBack();
+                return false;
+            }
+
             if ($data['method'] === 'shipping') {
                 if (
                     (int) ($data['item_id'] ?? 0) !== (int) $row['item_id'] ||

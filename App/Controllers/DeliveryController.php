@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Core\Controller;
 use App\Models\DeliveryModel;
+use App\Models\PaymentModel;
 use App\Models\GhnEventModel;
 use App\Models\DeliveryDemoModel;
 use App\Services\GhnClient;
@@ -97,6 +98,7 @@ class DeliveryController extends Controller
             'csrfToken' => $_SESSION['delivery_csrf'],
             'demoEnabled' => $demoEnabled,
             'demoState' => $demoState,
+            'payment' => ($delivery['delivery_method'] ?? '') === 'shipping' ? (new PaymentModel())->summary($this->id()) : null,
             'ghnEvents' => ($delivery['delivery_method'] ?? '') === 'shipping'
                 ? (new GhnEventModel())->history($this->id(), $uid) : [],
         ]);
@@ -267,6 +269,11 @@ class DeliveryController extends Controller
         $uid = $this->uid();
         if ($uid <= 0 || $id <= 0) $this->reject('Không hợp lệ.', 403);
 
+        if (!(new PaymentModel())->isPaid($id)) {
+            $_SESSION['delivery_notice'] = 'Chưa có thanh toán VNPAY được xác nhận. Bên chịu phí cần hoàn tất thanh toán trước khi tạo vận đơn.';
+            $this->redirectToTracking($id);
+        }
+
         $config = require __DIR__ . '/../Config/ghn.php';
         if (rtrim((string)($config['base_url'] ?? ''), '/') !== 'https://dev-online-gateway.ghn.vn') {
             $this->reject('Chức năng demo chỉ được phép gọi GHN Staging.', 403);
@@ -391,7 +398,7 @@ class DeliveryController extends Controller
             $clientCode = 'GNT-' . $id;
             $payload = [
                 'client_order_code' => $clientCode,
-                'payment_type_id' => (int)$row['payment_type_id'],
+                'payment_type_id' => 1, // GHN thu cước từ shop/người gửi; VNPAY đã thu từ bên chịu phí trên website.
                 'required_note' => 'CHOXEMHANGKHONGTHU',
                 'from_name' => (string)$row['from_name'],
                 'from_phone' => preg_replace('/\s+/', '', (string)$row['from_phone']),

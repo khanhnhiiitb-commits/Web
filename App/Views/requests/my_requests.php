@@ -114,6 +114,35 @@ $title = 'Quản lý người xin đồ - Give & Take';
         font-size: 2.6rem;
         margin-bottom: 1rem;
     }
+    /* Nền hai bên: gradient xanh lá + vàng nhạt (hợp với nút "Đăng đồ tặng") */
+    body {
+        background:
+            radial-gradient(ellipse 520px 420px at 0% 18%, rgba(25, 135, 84, .16), transparent 70%),
+            radial-gradient(ellipse 520px 460px at 100% 62%, rgba(255, 193, 7, .16), transparent 70%),
+            radial-gradient(ellipse 420px 360px at 100% 8%, rgba(25, 135, 84, .10), transparent 70%),
+            radial-gradient(ellipse 420px 360px at 0% 92%, rgba(25, 135, 84, .10), transparent 70%),
+            #f4f9f6;
+        background-attachment: fixed;
+    }
+    /* Họa tiết mờ hai bên, chỉ hiện trên màn hình rộng */
+    .rq-deco {
+        position: fixed;
+        z-index: 0;
+        pointer-events: none;
+        display: none;
+        font-family: "Font Awesome 6 Free", "Font Awesome 5 Free";
+        font-weight: 900;
+        line-height: 1;
+        color: #198754;
+    }
+    .rq-deco-1 { left: 3%;  top: 26%; font-size: 7rem;  opacity: .08; transform: rotate(-12deg); }
+    .rq-deco-2 { left: 9%;  top: 62%; font-size: 4.5rem; opacity: .07; transform: rotate(14deg); }
+    .rq-deco-3 { right: 4%; top: 22%; font-size: 5rem;  opacity: .07; transform: rotate(10deg); color: #f0ad00; }
+    .rq-deco-4 { right: 8%; top: 58%; font-size: 7.5rem; opacity: .08; transform: rotate(-8deg); }
+    @media (min-width: 1200px) {
+        .rq-deco { display: block; }
+    }
+    .rq-page { position: relative; z-index: 1; }
     @media (max-width: 575.98px) {
         .rq-header { padding: 1.1rem; }
         .rq-header-icon { width: 46px; height: 46px; flex-basis: 46px; font-size: 1.25rem; }
@@ -121,7 +150,12 @@ $title = 'Quản lý người xin đồ - Give & Take';
     }
 </style>
 
-<div class="container py-4">
+<span class="rq-deco rq-deco-1" aria-hidden="true">&#xf1b8;</span><!-- recycle -->
+<span class="rq-deco rq-deco-2" aria-hidden="true">&#xf06c;</span><!-- leaf -->
+<span class="rq-deco rq-deco-3" aria-hidden="true">&#xf06b;</span><!-- gift -->
+<span class="rq-deco rq-deco-4" aria-hidden="true">&#xf4be;</span><!-- hand-holding-heart -->
+
+<div class="container py-4 rq-page">
     <div class="rq-header d-flex align-items-center gap-3 mb-4">
         <span class="rq-header-icon"><i class="fa-solid fa-users-rectangle"></i></span>
         <div>

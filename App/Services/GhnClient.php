@@ -13,7 +13,7 @@ class GhnClient
         $this->config = require __DIR__ . '/../Config/ghn.php';
     }
 
-    private function request(string $method, string $endpoint, array $data = []): array
+    private function request(string $method, string $endpoint, array $data = [], bool $allowNotFound = false): array
     {
         $token = trim((string)($this->config['token'] ?? ''));
         if ($token === '') throw new RuntimeException('Chưa cấu hình GHN_TOKEN.');
@@ -49,6 +49,10 @@ class GhnClient
         if (!is_array($decoded)) throw new RuntimeException('GHN trả về dữ liệu không hợp lệ.');
         if ($httpCode < 200 || $httpCode >= 300 ||
             (isset($decoded['code']) && (int)$decoded['code'] !== 200)) {
+            if ($allowNotFound && $httpCode === 400 &&
+                ($decoded['code_message'] ?? '') === 'ORDER_NOT_FOUND') {
+                return ['data' => null, 'not_found' => true];
+            }
             $message = (string)($decoded['message'] ?? 'Unknown error');
             error_log('GHN API HTTP ' . $httpCode . ': ' . $message);
             throw new RuntimeException('GHN API thất bại (HTTP ' . $httpCode . ').');
@@ -94,6 +98,16 @@ class GhnClient
     public function getOrderDetail(string $orderCode): array
     {
         return $this->request('GET', '/shiip/public-api/v2/shipping-order/detail?order_code=' . rawurlencode($orderCode));
+    }
+
+    /** Chỉ coi là không có đơn khi GHN xác nhận ORDER_NOT_FOUND.
+     *  Timeout hoặc các lỗi khác không được phép mở khóa tạo lại.
+     */
+    public function findOrderByClientCode(string $clientCode): array
+    {
+        return $this->request('GET',
+            '/shiip/public-api/v2/shipping-order/detail-by-client-code?client_order_code=' . rawurlencode($clientCode),
+            [], true);
     }
 
     public function getOrderByClientCode(string $clientCode): array

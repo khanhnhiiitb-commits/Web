@@ -222,7 +222,7 @@ class DeliveryModel
         }
     }
     /** [GHN] Claim tạo đơn, serialize theo row item_requests. */
-    public function claimShipment(int $requestId, int $giverId): ?array
+    public function claimShipment(int $requestId, int $giverId, bool $retry = false): ?array
     {
         try {
             $this->db->beginTransaction();
@@ -249,7 +249,8 @@ class DeliveryModel
             if (!$row || (int)$row['giver_id'] !== $giverId ||
                 $row['status'] !== 'arranged' || $row['delivery_method'] !== 'shipping' ||
                 $row['item_status'] !== 'reserved' || empty($row['agreed_at']) ||
-                !empty($row['tracking_number']) || !empty($row['ghn_status'])) {
+                !empty($row['tracking_number']) ||
+                ($retry ? ($row['ghn_status'] !== 'needs_review') : !empty($row['ghn_status']))) {
                 $this->db->rollBack(); return null;
             }
             foreach (['ghn_province_id','ghn_district_id','to_province_id','to_district_id',
@@ -268,9 +269,10 @@ class DeliveryModel
                 !preg_match('/^0[0-9]{9,10}$/D', preg_replace('/\s+/', '', (string)($row['to_phone'] ?? '')))) {
                 $this->db->rollBack(); return null;
             }
+            $expectedStatus = $retry ? "ghn_status = 'needs_review'" : 'ghn_status IS NULL';
             $stmt = $this->db->prepare(
                 "UPDATE delivery_details SET ghn_status = 'creating'
-                 WHERE request_id = :id AND tracking_number IS NULL AND ghn_status IS NULL"
+                 WHERE request_id = :id AND tracking_number IS NULL AND {$expectedStatus}"
             );
             $stmt->execute([':id' => $requestId]);
             if ($stmt->rowCount() !== 1) { $this->db->rollBack(); return null; }

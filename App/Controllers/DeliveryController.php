@@ -273,6 +273,35 @@ class DeliveryController extends Controller
         }
         if ((int)($config['shop_id'] ?? 0) <= 0) $this->reject('Chưa cấu hình GHN_SHOP_ID.', 422);
 
+        $retry = (string)($_POST['retry_shipment'] ?? '') === '1';
+        if ($retry) {
+            if (($_POST['confirm_retry'] ?? '') !== '1' ||
+                !$this->delivery->canReconcileShipment($id, $uid)) {
+                $this->reject('Không đủ điều kiện thử tạo lại vận đơn.', 403);
+            }
+            // Không tạo lại khi GHN đã có đơn; không mở khóa nếu API tra cứu lỗi/timeout.
+            try {
+                $existing = (new GhnClient())->findOrderByClientCode('GNT-' . $id);
+                $existingCode = trim((string)($existing['data']['order_code'] ?? ''));
+                if ($existingCode !== '') {
+                    if ($this->delivery->finishReviewedShipment($id, $uid, $existingCode)) {
+                        $_SESSION['delivery_notice'] = 'Đã tìm thấy và khôi phục vận đơn GHN: ' . $existingCode;
+                    } else {
+                        $_SESSION['delivery_notice'] = 'Đã tìm thấy vận đơn nhưng không thể lưu. Vui lòng liên hệ quản trị.';
+                    }
+                    $this->redirectToTracking($id);
+                }
+                if (($existing['not_found'] ?? false) !== true) {
+                    throw new RuntimeException('GHN chưa xác nhận vận đơn không tồn tại.');
+                }
+                error_log('GHN retry verified ORDER_NOT_FOUND request=' . $id);
+            } catch (Throwable $e) {
+                error_log('GHN retry verification request=' . $id . ': ' . $e->getMessage());
+                $_SESSION['delivery_notice'] = 'Không thể xác nhận vận đơn cũ chưa tồn tại trên GHN. Chưa gửi yêu cầu tạo lại. Hãy thử đối soát sau.';
+                $this->redirectToTracking($id);
+            }
+        }
+
         // Kiểm tra cấu hình shop/kho trước khi claim: lỗi cấu hình không được chuyển sang needs_review.
         // GHN có thể vẫn yêu cầu thông tin kho mặc định dù payload ghi đè địa chỉ người gửi.
         try {
@@ -311,9 +340,9 @@ class DeliveryController extends Controller
         }
 
         // Claim trong DB để tránh hai request đồng thời tạo trùng.
-        $row = $this->delivery->claimShipment($id, $uid);
+        $row = $this->delivery->claimShipment($id, $uid, $retry);
         if (!$row) {
-            $_SESSION['delivery_notice'] = 'Không thể tạo vận đơn: cần trạng thái arranged, đủ dữ liệu GHN, hoặc vận đơn đã/đang được tạo.';
+            $_SESSION['delivery_notice'] = 'Không thể tạo vận đơn: trạng thái không phù hợp, thông tin GHN chưa đủ hoặc yêu cầu khác đang xử lý.';
             $this->redirectToTracking($id);
         }
 

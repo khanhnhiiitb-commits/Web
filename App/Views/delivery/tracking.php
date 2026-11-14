@@ -100,6 +100,21 @@ $meetingTime = !empty($delivery['meeting_time'])
                             <input type="hidden" name="csrf_token" value="<?= $e($csrfToken) ?>">
                             <button type="submit" class="btn btn-outline-warning btn-sm">Đối soát vận đơn GHN</button>
                         </form>
+                        <?php if ((string)($delivery['ghn_status'] ?? '') === 'needs_review'): ?>
+                            <form method="post" action="index.php?controller=Delivery&amp;action=createShipment&amp;id=<?= $id ?>" class="mt-2">
+                                <input type="hidden" name="csrf_token" value="<?= $e($csrfToken) ?>">
+                                <input type="hidden" name="retry_shipment" value="1">
+                                <div class="form-check small mb-2">
+                                    <input class="form-check-input" type="checkbox" id="confirmRetryGhn" name="confirm_retry" value="1" required>
+                                    <label class="form-check-label" for="confirmRetryGhn">
+                                        Tôi muốn thử tạo lại. Hệ thống sẽ kiểm tra mã GNT-<?= $id ?> trước và chỉ gửi lại nếu GHN xác nhận không có đơn.
+                                    </label>
+                                </div>
+                                <button type="submit" class="btn btn-outline-primary btn-sm">
+                                    <i class="bi bi-arrow-repeat me-1"></i>Thử tạo lại vận đơn
+                                </button>
+                            </form>
+                        <?php endif; ?>
                     <?php endif; ?>
                     <?php if (!empty($delivery['tracking_number'])): ?>
                         <?php

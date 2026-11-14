@@ -370,7 +370,6 @@ class DeliveryController extends Controller
                 'from_ward_name' => $fromWard,
                 'from_district_name' => $fromDistrict,
                 'from_province_name' => $fromProvince,
-                // GHN hiện hỗ trợ ghi đè địa chỉ trả hàng theo từng vận đơn.
                 // Dùng cùng địa chỉ với người tặng, không phụ thuộc địa chỉ trả mặc định của shop.
                 'return_name' => (string)$row['from_name'],
                 'return_phone' => preg_replace('/\s+/', '', (string)$row['from_phone']),
@@ -406,6 +405,32 @@ class DeliveryController extends Controller
                     'height' => $payload['height'],
                 ]];
             }
+            // Ghi log mã và tên địa giới GHN để chẩn đoán lỗi tra cứu phường/xã.
+            // Không ghi tên người dùng, số điện thoại, địa chỉ chi tiết hay GHN_TOKEN.
+            error_log('GHN ADDRESS DEBUG request=' . $id . ' ' . json_encode([
+                'address_mode' => [
+                    'from' => $payload['is_new_from_address'],
+                    'to' => $payload['is_new_to_address'],
+                    'return' => $payload['is_new_return_address'],
+                ],
+                'from' => [
+                    'province_id' => $row['ghn_province_id'],
+                    'district_id' => $row['ghn_district_id'],
+                    'ward_code' => $row['ghn_ward_code'],
+                    'province_name' => $fromProvince,
+                    'district_name' => $fromDistrict,
+                    'ward_name' => $fromWard,
+                ],
+                'to' => [
+                    'province_id' => $row['to_province_id'],
+                    'district_id' => $row['to_district_id'],
+                    'ward_code' => $row['to_ward_code'],
+                    'province_name' => $toProvince,
+                    'district_name' => $toDistrict,
+                    'ward_name' => $toWard,
+                ],
+            ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+
             $result = $ghn->createOrder($payload);
             $orderCode = trim((string)($result['data']['order_code'] ?? ''));
             if ($orderCode === '') throw new RuntimeException('GHN không trả mã vận đơn.');
